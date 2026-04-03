@@ -5,7 +5,9 @@ async function register(req, res) {
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ error: 'name, email, and password are required.' });
+      return res
+        .status(400)
+        .json({ error: 'name, email, and password are required.' });
     }
 
     const user = await authService.register({ name, email, password, role });
@@ -20,7 +22,9 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'email and password are required.' });
+      return res
+        .status(400)
+        .json({ error: 'email and password are required.' });
     }
 
     const result = await authService.login({ email, password });

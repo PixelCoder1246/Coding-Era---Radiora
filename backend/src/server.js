@@ -11,7 +11,9 @@ async function start() {
     console.log('[DB] PostgreSQL connected via Prisma.');
 
     app.listen(PORT, () => {
-      console.log(`[SERVER] Radiora backend running on http://localhost:${PORT}`);
+      console.log(
+        `[SERVER] Radiora backend running on http://localhost:${PORT}`
+      );
     });
   } catch (err) {
     console.error('[STARTUP ERROR]', err);
