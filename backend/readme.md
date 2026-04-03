@@ -6,13 +6,13 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 
 ## Tech Stack
 
-| Tool | Purpose |
-|---|---|
-| Node.js + Express.js | HTTP server and routing |
-| PostgreSQL | Primary database |
-| Prisma ORM | Database access and migrations |
-| JWT | Stateless authentication |
-| bcrypt | Password hashing |
+| Tool                 | Purpose                        |
+| -------------------- | ------------------------------ |
+| Node.js + Express.js | HTTP server and routing        |
+| PostgreSQL           | Primary database               |
+| Prisma ORM           | Database access and migrations |
+| JWT                  | Stateless authentication       |
+| bcrypt               | Password hashing               |
 
 ---
 
@@ -24,6 +24,7 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - HIS integration configuration storage
 - Integration activation with live connectivity validation
 - Secure route protection via auth middleware
+- **Code quality:** ESLint + Prettier setup for consistent linting and formatting
 
 ---
 
@@ -93,26 +94,26 @@ Server starts at `http://localhost:3000`.
 
 ### Auth
 
-| Method | Route | Access |
-|---|---|---|
+| Method | Route                | Access |
+| ------ | -------------------- | ------ |
 | `POST` | `/api/auth/register` | Public |
-| `POST` | `/api/auth/login` | Public |
+| `POST` | `/api/auth/login`    | Public |
 
 ### Integrations
 
-| Method | Route | Access |
-|---|---|---|
-| `POST` | `/api/integrations/pacs` | Admin |
-| `POST` | `/api/integrations/his` | Admin |
-| `GET` | `/api/integrations/status` | Authenticated |
-| `POST` | `/api/integrations/pacs/activate` | Admin |
-| `POST` | `/api/integrations/his/activate` | Admin |
+| Method | Route                             | Access        |
+| ------ | --------------------------------- | ------------- |
+| `POST` | `/api/integrations/pacs`          | Admin         |
+| `POST` | `/api/integrations/his`           | Admin         |
+| `GET`  | `/api/integrations/status`        | Authenticated |
+| `POST` | `/api/integrations/pacs/activate` | Admin         |
+| `POST` | `/api/integrations/his/activate`  | Admin         |
 
 ### Health
 
-| Method | Route | Access |
-|---|---|---|
-| `GET` | `/health` | Public |
+| Method | Route     | Access |
+| ------ | --------- | ------ |
+| `GET`  | `/health` | Public |
 
 ---
 
@@ -127,4 +128,4 @@ Server starts at `http://localhost:3000`.
 
 ## Version
 
-**Current Version: 0.1.0**
+**Current Version: 0.1.1**

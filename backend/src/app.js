@@ -11,7 +11,6 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'radiora-backend' });
 });
 
-
 app.use('/api/auth', authRoutes);
 app.use('/api/integrations', integrationRoutes);
 
@@ -23,7 +22,9 @@ app.use((req, res) => {
 // Global errors handling at your face
 app.use((err, req, res, _next) => {
   console.error('[ERROR]', err);
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error.' });
+  res
+    .status(err.status || 500)
+    .json({ error: err.message || 'Internal server error.' });
 });
 
 module.exports = app;

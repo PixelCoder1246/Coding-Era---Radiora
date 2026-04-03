@@ -1,5 +1,8 @@
 const { Router } = require('express');
-const { authMiddleware, requireRole } = require('../../middleware/auth.middleware');
+const {
+  authMiddleware,
+  requireRole,
+} = require('../../middleware/auth.middleware');
 const {
   savePacsConfig,
   saveHisConfig,
