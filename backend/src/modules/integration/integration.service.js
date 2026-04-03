@@ -1,7 +1,6 @@
 const axios = require('axios');
 const prisma = require('../../config/db');
 
-// Saves or overwrites PACS integration config
 async function savePacsConfig({
   url,
   username,
@@ -29,7 +28,6 @@ async function savePacsConfig({
   return integration;
 }
 
-// Saves or overwrites HIS integration config
 async function saveHisConfig({ url, apiKey }) {
   const integration = await prisma.integration.upsert({
     where: { type: 'HIS' },
@@ -39,7 +37,6 @@ async function saveHisConfig({ url, apiKey }) {
   return integration;
 }
 
-// Returns current active status of both integrations
 async function getStatus() {
   const [pacs, his] = await Promise.all([
     prisma.integration.findUnique({
@@ -62,7 +59,6 @@ async function getStatus() {
   };
 }
 
-// Activates PACS integration — verifies Orthanc is reachable via GET /studies
 async function activatePacs() {
   const config = await prisma.integration.findUnique({
     where: { type: 'PACS' },
@@ -76,19 +72,13 @@ async function activatePacs() {
     throw err;
   }
 
-  // Verify Orthanc is reachable
   try {
-    const authHeader =
-      config.username && config.password
-        ? {
-            auth: { username: config.username, password: config.password },
-          }
-        : {};
-
     await axios.get(`${config.url}/studies`, {
-      ...authHeader,
+      auth: {
+        username: config.username || '',
+        password: config.password || '',
+      },
       timeout: 5000,
-      params: { limit: 1 },
     });
   } catch {
     const err = new Error(
@@ -107,7 +97,6 @@ async function activatePacs() {
   return updated;
 }
 
-// Activates HIS integration — verifies HIS is reachable via GET /health or /patients
 async function activateHis() {
   const config = await prisma.integration.findUnique({
     where: { type: 'HIS' },
@@ -121,7 +110,6 @@ async function activateHis() {
     throw err;
   }
 
-  // Verify HIS is reachable — try /health, fall back to /patients
   try {
     const headers = config.apiKey ? { 'x-api-key': config.apiKey } : {};
 

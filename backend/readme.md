@@ -26,6 +26,18 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - Secure route protection via auth middleware
 - **Code quality:** ESLint + Prettier setup for consistent linting and formatting
 
+## Features (Phase 2)
+
+- Automatic PACS polling with configurable interval
+- Study metadata extraction from Orthanc
+- HIS order matching by `accessionNumber`
+- Automatic `Case` creation on successful match
+- Deduplication via `ProcessedStudy` — each study processed exactly once
+- Activation timestamp filter — only post-activation studies are processed
+- PACS viewer URL construction per case
+- Case management endpoints (list, get, assign doctor)
+- Polling auto-starts on server boot if PACS is active
+
 ---
 
 ## Project Structure
@@ -42,6 +54,9 @@ backend/
     modules/
       auth/             ← Register, login, JWT issuance
       integration/      ← PACS + HIS config and activation
+      cases/            ← Case listing, detail, and assignment
+      his/              ← HIS proxy (create patient, create order)
+      pacs/             ← PACS upload (stream DICOM to Orthanc)
 
     middleware/
       auth.middleware.js ← Bearer token verification + requireRole guard
@@ -49,8 +64,11 @@ backend/
     utils/
       jwt.js            ← signToken / verifyToken helpers
 
+    services/
+      polling.service.js ← PACS polling loop, HIS matching, case creation
+
   prisma/
-    schema.prisma       ← DB schema (User, Integration — Phase 1 only)
+    schema.prisma       ← DB schema (User, Integration, Case, ProcessedStudy)
 ```
 
 ---
@@ -115,6 +133,27 @@ Server starts at `http://localhost:3000`.
 | ------ | --------- | ------ |
 | `GET`  | `/health` | Public |
 
+### Cases
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/cases` | Authenticated |
+| `GET` | `/api/cases/:caseId` | Authenticated |
+| `POST` | `/api/cases/:caseId/assign` | Admin |
+
+### HIS Proxy (Demo/Testing)
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/his/patients` | Public |
+| `POST` | `/api/his/orders` | Public |
+
+### PACS Upload (Demo/Testing)
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/pacs/upload` | Public |
+
 ---
 
 ## Notes
@@ -122,10 +161,10 @@ Server starts at `http://localhost:3000`.
 - **PACS** uses [Orthanc](https://www.orthanc-server.com/) which must be running locally for activation to succeed.
 - **HIS** is a mock service — activation points to a separately running HIS process.
 - Activation endpoints make a live HTTP request to validate connectivity before marking an integration as active.
-- Polling, case logic, AI integration, and report handling are **not included in Phase 1**.
+- Polling, case logic are **implemented in Phase 2**. AI integration and report handling are **not included yet**.
 
 ---
 
 ## Version
 
-**Current Version: 0.1.1**
+**Current Version: 0.2.0**

@@ -1,5 +1,4 @@
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,13 +18,28 @@ enum IntegrationType {
   HIS
 }
 
+enum CaseStatus {
+  UNASSIGNED
+  PENDING_REVIEW
+  IN_REVIEW
+  COMPLETED
+}
+
+enum AiStatus {
+  NOT_REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(DOCTOR)
-  createdAt    DateTime @default(now())
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(DOCTOR)
+  createdAt     DateTime @default(now())
+  assignedCases Case[]
 }
 
 model Integration {
@@ -39,4 +53,28 @@ model Integration {
   active              Boolean         @default(false)
   activatedAt         DateTime?
   updatedAt           DateTime        @updatedAt
+}
+
+model Case {
+  id               String     @id @default(cuid())
+  orthancId        String
+  studyInstanceUID String     @unique
+  accessionNumber  String
+  patientId        String
+  patientName      String
+  modality         String
+  bodyPart         String?
+  studyDate        DateTime?
+  status           CaseStatus @default(UNASSIGNED)
+  assignedDoctorId String?
+  assignedDoctor   User?      @relation(fields: [assignedDoctorId], references: [id])
+  aiStatus         AiStatus   @default(NOT_REQUESTED)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+}
+
+model ProcessedStudy {
+  id               String   @id @default(cuid())
+  studyInstanceUID String   @unique
+  processedAt      DateTime @default(now())
 }
