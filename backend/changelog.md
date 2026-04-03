@@ -7,13 +7,13 @@ All notable changes to the Radiora-backend will be documented here.
 ## [0.1.1] - 2026-03-19
 
 ### Added
+
 - ESLint (v10) setup with Flat Config (`eslint.config.js`)
 - Prettier setup for consistent code formatting
 - `npm run lint` and `npm run format` scripts
 - Automatic formatting with `lint:fix`
 - Configured ESLint to ignore unused variables starting with `_` (useful for Express middleware)
 - Added `package-lock.json` to ignore lists for linting and formatting
-
 
 ## [0.1.0] - 2026-03-19
 
