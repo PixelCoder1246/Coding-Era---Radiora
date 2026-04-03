@@ -31,10 +31,11 @@ venv/
 .venv/
 
 # ========================
-# OS Files
+# OS Files and Temp
 # ========================
 .DS_Store
 Thumbs.db
+commit_message.txt
 
 # ========================
 # IDE
