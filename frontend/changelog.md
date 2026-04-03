@@ -5,6 +5,23 @@ All notable changes to the Radiora Frontend will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-04-04
+
+### Added
+- Created 11 supplemental marketing and legal pages (Privacy, Terms, About, Company, etc.) with unified layout structure.
+- Implemented comprehensive SEO metadata in the root layout, including OpenGraph and Twitter social tags.
+- Integrated Lucide icons throughout the UI for better visual communication.
+
+### Changed
+- Refactored `Footer` into a reusable component and integrated it into the global `layout.tsx`.
+- Restructured application routing using the `(marketing)` route group for better organization.
+- Migrated 100% of styling to CSS Modules with a refined, premium "curvy" aesthetic.
+- Enhanced landing page UI with unified brand colors and improved responsiveness.
+
+### Fixed
+- Fixed build error related to incorrectly versioned `lucide-react` package.
+- Resolved Turbopack panic by optimizing directory structure and clearing cache.
+
 ## [0.0.0] - 2026-04-03
 
 ### Added
