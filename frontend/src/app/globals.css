@@ -14,8 +14,8 @@
   --muted: #f8fafc;
   --muted-foreground: #64748b;
 
-  --card: #ffffff;
-  --card-foreground: #0f172a;
+  /* --card: #ffffff; */
+  /* --card-foreground: #0f172a; */
 
   --border: #e2e8f0;
   --input: #e2e8f0;
@@ -172,4 +172,12 @@ body {
   background: var(--primary);
   color: var(--primary-foreground);
   transform: translateY(-2px);
+}
+
+body.hide-navbar nav {
+  display: none !important;
+}
+
+body.hide-navbar nav {
+  display: none !important;
 }
