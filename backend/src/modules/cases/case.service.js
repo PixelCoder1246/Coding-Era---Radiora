@@ -115,4 +115,39 @@ async function assignDoctor(caseId, doctorId, adminId) {
   return updated;
 }
 
-module.exports = { listCases, getCaseById, assignDoctor };
+async function updateCaseStatus(caseId, status, user) {
+  const existing = await prisma.case.findUnique({ where: { id: caseId } });
+  if (!existing) {
+    const err = new Error('Case not found.');
+    err.status = 404;
+    throw err;
+  }
+
+  // Security check: Only the organization's admin or the assigned doctor can update status
+  const isOrgAdmin = user.role === 'ADMIN' && existing.adminId === user.adminId;
+  const isAssignedDoctor =
+    user.role === 'DOCTOR' && existing.assignedDoctorId === user.userId;
+
+  if (!isOrgAdmin && !isAssignedDoctor) {
+    const err = new Error('Forbidden: You do not have permission to update this case.');
+    err.status = 403;
+    throw err;
+  }
+
+  // Basic validation for status transitions
+  const validStatuses = ['PENDING_REVIEW', 'IN_REVIEW', 'COMPLETED'];
+  if (!validStatuses.includes(status)) {
+    const err = new Error(`Invalid status. Use one of: ${validStatuses.join(', ')}`);
+    err.status = 400;
+    throw err;
+  }
+
+  const updated = await prisma.case.update({
+    where: { id: caseId },
+    data: { status },
+  });
+
+  return updated;
+}
+
+module.exports = { listCases, getCaseById, assignDoctor, updateCaseStatus };

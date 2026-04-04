@@ -78,4 +78,26 @@ async function receiveAiResult(req, res) {
   }
 }
 
-module.exports = { listCases, getCaseById, assignDoctor, receiveAiResult };
+async function updateCaseStatus(req, res) {
+  try {
+    const { caseId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'status is required.' });
+    }
+
+    const updated = await caseService.updateCaseStatus(caseId, status, req.user);
+    return res.status(200).json({ message: 'Case status updated.', case: updated });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+module.exports = {
+  listCases,
+  getCaseById,
+  assignDoctor,
+  receiveAiResult,
+  updateCaseStatus,
+};

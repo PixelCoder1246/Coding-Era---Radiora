@@ -64,6 +64,14 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - **AI trigger fixed**: `orthancUrl` now included in AI payload so AI server knows which admin's PACS to connect to
 - **Root `docs/` updated**: `docs/api.md` and `docs/workflow.md` fully rewritten to match current backend — correct endpoints, roles, multi-tenancy, portal response shape, AI payload, and system flowchart
 
+## Fixes & Patches (v0.3.3)
+
+- **Status Updates**: New `PATCH /api/cases/:id/status` endpoint for `IN_REVIEW` tracking
+- **Resend Notification**: New endpoint for doctors to resend patient report links
+- **Frontend Portal Links**: Emails now point to the correct frontend UI instead of backend API
+- **Stability**: Hardened polling service to prevent crashes on connection timeouts or PACS errors
+- **Terminal Cleanup**: Removed redundant WhatsApp console logs
+
 ---
 
 ## Project Structure

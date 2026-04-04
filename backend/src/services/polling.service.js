@@ -278,10 +278,18 @@ async function startPolling() {
       `[POLL] Starting polling for admin ${adminId} every ${intervalSeconds}s`
     );
 
-    runPollCycle(pacsConfig, hisConfig);
+    try {
+      runPollCycle(pacsConfig, hisConfig).catch((err) =>
+        console.error(`[POLL] Initial cycle failed for admin ${adminId}:`, err.message)
+      );
+    } catch (err) {
+      console.error(`[POLL] Failed to trigger initial cycle for admin ${adminId}:`, err.message);
+    }
 
     const interval = setInterval(() => {
-      runPollCycle(pacsConfig, hisConfig);
+      runPollCycle(pacsConfig, hisConfig).catch((err) =>
+        console.error(`[POLL] Cycle failed for admin ${adminId}:`, err.message)
+      );
     }, intervalMs);
 
     pollingIntervals.set(adminId, interval);
