@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, Fingerprint, ShieldCheck, Stethoscope, Info } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 
@@ -25,8 +25,9 @@ const DEMO_CREDS = {
   },
 };
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,10 +57,16 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) throw new Error('Invalid credentials. Please attempt again.');
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || 'Invalid credentials. Please attempt again.');
+      }
 
       const data = await response.json();
-      const redirectPath = data?.user?.role === 'ADMIN' ? '/admin/dashboard' : '/doctor';
+      const defaultPath = data?.user?.role === 'ADMIN' ? '/admin/dashboard' : '/doctor';
+      // Respect callbackUrl set by middleware (e.g., when accessing a protected route directly)
+      const callbackUrl = searchParams.get('callbackUrl');
+      const redirectPath = callbackUrl || defaultPath;
 
       setModal({ isOpen: true, type: 'success', message: 'Identity verified. Accessing system…' });
       setTimeout(() => {
@@ -327,5 +334,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   );
 }
