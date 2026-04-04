@@ -94,9 +94,14 @@ async function activatePacs(req, res) {
 async function activateHis(req, res) {
   try {
     const result = await integrationService.activateHis(req.user.adminId);
+
+    // Also restart polling — HIS activation might be the last piece needed
+    stopPolling();
+    await startPolling();
+
     return res
       .status(200)
-      .json({ message: 'HIS integration activated.', ...result });
+      .json({ message: 'HIS integration activated. Polling restarted.', ...result });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
   }

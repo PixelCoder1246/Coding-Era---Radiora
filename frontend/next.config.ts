@@ -9,12 +9,18 @@ const nextConfig: NextConfig = {
     },
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'https://api-13-204-42-87.nip.io/api/:path*',
-      },
-    ];
+    return {
+      // These are handled by local Next.js API routes (need to set cookies properly)
+      beforeFiles: [],
+      // Everything else proxies to the backend
+      afterFiles: [
+        {
+          source: '/api/:path*',
+          destination: 'https://api-13-204-42-87.nip.io/api/:path*',
+        },
+      ],
+      fallback: [],
+    };
   },
 };
 
