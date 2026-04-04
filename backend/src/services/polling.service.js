@@ -14,11 +14,11 @@ async function runPollCycle(pacsConfig, hisConfig) {
     const authOpts =
       pacsConfig.username && pacsConfig.password
         ? {
-          auth: {
-            username: pacsConfig.username,
-            password: pacsConfig.password,
-          },
-        }
+            auth: {
+              username: pacsConfig.username,
+              password: pacsConfig.password,
+            },
+          }
         : {};
 
     const response = await axios.get(`${pacsConfig.url}/studies`, {
@@ -61,11 +61,11 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const authOpts =
     pacsConfig.username && pacsConfig.password
       ? {
-        auth: {
-          username: pacsConfig.username,
-          password: pacsConfig.password,
-        },
-      }
+          auth: {
+            username: pacsConfig.username,
+            password: pacsConfig.password,
+          },
+        }
       : {};
 
   let studyMeta;
@@ -103,7 +103,9 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
     return;
   }
   if (!accessionNumber) {
-    console.warn(`[POLL] Skipping ${orthancId}: missing AccessionNumber and no FALLBACK_ACCESSION_NUMBER set`);
+    console.warn(
+      `[POLL] Skipping ${orthancId}: missing AccessionNumber and no FALLBACK_ACCESSION_NUMBER set`
+    );
     return;
   }
 
