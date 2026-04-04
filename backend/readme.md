@@ -53,6 +53,11 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - Auth status: `GET /api/auth/status` — returns current user identity + `adminId` for frontend auth checks
 - **Multi-tenancy**: each admin is a fully isolated organization; data scoped by `adminId` across `Integration`, `Case`, `ProcessedStudy`; doctors bound to their admin via `createdByAdminId`; polling spawns one interval per admin; `adminId` embedded in JWT payload
 
+## Fixes & Patches (v0.3.1)
+
+- **Polling crash recovery**: `ProcessedStudy` marker saved before `Case` creation — prevents crash-retry loop on mid-poll server restart
+- **`USE_FALLBACK_ACCESSION` env flag**: `true` = allow DICOMs with no `AccessionNumber` to use `FALLBACK_ACCESSION_NUMBER`; `false` (production default) = skip such DICOMs entirely
+
 ---
 
 ## Project Structure
