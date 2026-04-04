@@ -47,17 +47,14 @@ export default function LoginPage() {
     setModal(prev => ({ ...prev, isOpen: false }));
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      console.log('[AUTH] Attempting login to:', apiUrl);
-
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      // We always use the relative /api path to trigger the Next.js rewrite (proxy)
+      // This ensures cookies are handled correctly on the same domain.
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
-
-      console.log('[AUTH] Response status:', response.status);
 
       if (!response.ok) throw new Error('Invalid credentials. Please attempt again.');
 

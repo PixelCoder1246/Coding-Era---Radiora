@@ -26,8 +26,8 @@ export default function RegisterPage() {
     const payload = { name, email, password, role: 'ADMIN' };
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
+      // Use relative /api to trigger the Next.js rewrite (proxy)
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
