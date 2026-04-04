@@ -4,6 +4,19 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.3] - 2026-03-26
+
+### Added
+- `POST /api/cases/:caseId/resend-notification` — endpoint for doctors to resend report notifications to patients.
+- `PATCH /api/cases/:caseId/status` — endpoint for doctors to mark cases as `IN_REVIEW` (completes the medical workflow).
+
+### Fixed
+- **Email Portal URLs**: Patient notification emails now correctly point to the **frontend** portal UI (`/portal/report/:token`) instead of the backend API.
+- **Polling Hardening**: Added top-level safety wrappers to the polling service to prevent unhandled promise rejections from crashing the entire server if a PACS cycle fails.
+- **WhatsApp Logs**: Removed temporary `[WHATSAPP]` console logs to keep terminal output clean until a real SMS provider is integrated.
+
+---
+
 ## [0.3.2] - 2026-03-26
 
 ### Changed

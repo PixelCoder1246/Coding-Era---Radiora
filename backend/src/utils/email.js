@@ -8,7 +8,7 @@ async function sendReportEmail({ to, patientName, accessToken }) {
     return;
   }
 
-  const portalUrl = `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/portal/report/${accessToken}`;
+  const portalUrl = `${process.env.FRONTEND_URL || 'http://localhost:3002'}/portal/report/${accessToken}`;
 
   const msg = {
     to,
@@ -25,10 +25,18 @@ async function sendReportEmail({ to, patientName, accessToken }) {
   };
 
   try {
-    await sgMail.send(msg);
-    console.log(`[EMAIL] Report email sent to ${to}`);
+    const [response] = await sgMail.send(msg);
+    console.log(
+      `[EMAIL] Report email sent to ${to}. Status: ${response.statusCode}`
+    );
   } catch (err) {
-    console.error(`[EMAIL] Failed to send to ${to}:`, err.message);
+    console.error(`[EMAIL] Failed to send to ${to}:`);
+    if (err.response) {
+      console.error('  Status:', err.response.statusCode);
+      console.error('  Body:', JSON.stringify(err.response.body, null, 2));
+    } else {
+      console.error('  Error:', err.message);
+    }
   }
 }
 

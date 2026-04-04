@@ -51,13 +51,44 @@ async function submitReport(caseId, doctorId, { reportText, impression }) {
     });
   }
 
-  if (caseRecord.patientPhone) {
-    console.log(
-      `[WHATSAPP] SENT TO ${caseRecord.patientPhone} → /portal/report/${accessToken}`
-    );
-  }
-
   return { reportId: report.id, accessToken };
 }
 
-module.exports = { submitReport };
+async function resendNotification(caseId, doctorId) {
+  const caseRecord = await prisma.case.findUnique({
+    where: { id: caseId },
+    include: { report: true },
+  });
+
+  if (!caseRecord) {
+    const err = new Error('Case not found.');
+    err.status = 404;
+    throw err;
+  }
+
+  if (caseRecord.assignedDoctorId !== doctorId) {
+    const err = new Error('You are not assigned to this case.');
+    err.status = 403;
+    throw err;
+  }
+
+  if (caseRecord.status !== 'COMPLETED' || !caseRecord.report) {
+    const err = new Error('No report submitted yet for this case.');
+    err.status = 400;
+    throw err;
+  }
+
+  const { accessToken } = caseRecord.report;
+
+  if (caseRecord.patientEmail) {
+    await sendReportEmail({
+      to: caseRecord.patientEmail,
+      patientName: caseRecord.patientName,
+      accessToken,
+    });
+  }
+
+  return { message: 'Notification resent successfully.', accessToken };
+}
+
+module.exports = { submitReport, resendNotification };
