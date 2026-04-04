@@ -2,15 +2,17 @@
 
 This is the central frontend repository for the Radiora platform, built with **Next.js 16**, **React 19**, and **TypeScript**.
 
-## 🚀 Getting Started
+## Getting Started
 
 1.  **Clone and Navigate**:
+
     ```bash
     git clone https://github.com/PixelCoder1246/Coding-Era---Radiora.git
     cd Coding-Era---Radiora/frontend
     ```
 
 2.  **Installation**:
+
     ```bash
     npm install
     ```
@@ -22,7 +24,7 @@ This is the central frontend repository for the Radiora platform, built with **N
     npm run frontend  # Starts dev server on port 3001
     ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Framework**: Next.js 16 (App Router)
 - **Library**: React 19
@@ -30,7 +32,7 @@ This is the central frontend repository for the Radiora platform, built with **N
 - **Styling**: Standard CSS (Modules & Globals)
 - **Tooling**: ESLint 9 (Flat Config), Prettier 3, Husky (Planned)
 
-## 📜 Available Scripts
+## Available Scripts
 
 - `npm run dev`: Starts the application in development mode.
 - `npm run build`: Compiles and optimizes the project for production.
@@ -40,7 +42,7 @@ This is the central frontend repository for the Radiora platform, built with **N
 - `npm run format`: Runs Prettier directly to format the source code.
 - `npm run frontend`: Specialized dev script that starts on port `3001`.
 
-## 📁 Project Structure
+## Project Structure
 
 - `src/app/`: Core application logic, routing, and layout.
 - `public/`: Static resources and assets.
@@ -48,4 +50,5 @@ This is the central frontend repository for the Radiora platform, built with **N
 - `next.config.ts`: Next.js application configuration.
 
 ---
-*Created by [Antigravity AI](https://github.com/GoogleDeepMind)*
+
+_Created by [Antigravity AI](https://github.com/GoogleDeepMind)_
