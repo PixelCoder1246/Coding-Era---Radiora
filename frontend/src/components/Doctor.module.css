@@ -2,7 +2,8 @@
   min-height: calc(100vh - 80px);
   background: var(--background);
   color: var(--foreground);
-  padding: 3rem 4rem;
+  padding: 6.5rem 4rem 3rem;
+  /* 6.5rem clears fixed navbar, same as admin dashboard */
   font-family: 'Inter', system-ui, sans-serif;
   transition: background 0.3s ease, color 0.3s ease;
 }
@@ -89,20 +90,38 @@
 .pulser::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-radius: 50%;
   background: inherit;
   animation: pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(3); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
 }
 
-.status-PENDING_REVIEW .pulser { background: #f59e0b; }
-.status-IN_REVIEW .pulser { background: #3b82f6; }
-.status-COMPLETED .pulser { background: #10b981; }
+.status-PENDING_REVIEW .pulser {
+  background: #f59e0b;
+}
+
+.status-IN_REVIEW .pulser {
+  background: #3b82f6;
+}
+
+.status-COMPLETED .pulser {
+  background: #10b981;
+}
 
 .cardFooter {
   text-align: right;
@@ -113,13 +132,15 @@
 /* Study View (Minimalist Workstation) */
 .studyContainer {
   display: flex;
-  height: 100%;
-  width: 100%;
+  height: 100vh;
+  width: 100vw;
   background: #000;
   color: #fff;
   overflow: hidden;
-  position: absolute;
+  position: fixed;
   inset: 0;
+  z-index: 1001;
+  /* Above the floating navbar */
 }
 
 .viewerPane {
@@ -147,7 +168,10 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease, background 0.3s ease;
+  overflow: hidden;
+  /* Hides content when collapsed to width: 0 */
   z-index: 40;
+  flex-shrink: 0;
 }
 
 .panelHeader {
@@ -243,7 +267,8 @@
   position: absolute;
   bottom: 2rem;
   left: 2rem;
-  background: rgba(15, 23, 42, 0.85); /* Keep AI control dark/readable over black viewer */
+  background: rgba(15, 23, 42, 0.85);
+  /* Keep AI control dark/readable over black viewer */
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.75rem 1.25rem;

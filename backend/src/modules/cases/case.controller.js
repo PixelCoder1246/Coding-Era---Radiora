@@ -1,6 +1,7 @@
 const caseService = require('./case.service');
 const prisma = require('../../config/db');
 
+
 async function listCases(req, res) {
   try {
     const cases = await caseService.listCases(req.user);
@@ -100,10 +101,21 @@ async function updateCaseStatus(req, res) {
   }
 }
 
+async function deleteCase(req, res) {
+  try {
+    const { caseId } = req.params;
+    const result = await caseService.deleteCase(caseId, req.user.adminId);
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 module.exports = {
   listCases,
   getCaseById,
   assignDoctor,
   receiveAiResult,
   updateCaseStatus,
+  deleteCase,
 };

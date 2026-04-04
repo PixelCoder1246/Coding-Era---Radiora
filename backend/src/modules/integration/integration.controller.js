@@ -1,4 +1,5 @@
 const integrationService = require('./integration.service');
+const { stopPolling, startPolling } = require('../../services/polling.service');
 
 async function getPacsConfig(req, res) {
   try {
@@ -75,8 +76,13 @@ async function getStatus(req, res) {
 async function activatePacs(req, res) {
   try {
     const result = await integrationService.activatePacs(req.user.adminId);
+
+    // Restart the polling service so the new pollIntervalSeconds takes effect immediately
+    stopPolling();
+    await startPolling();
+
     return res.status(200).json({
-      message: 'PACS integration activated. Polling ready.',
+      message: 'PACS integration activated. Polling restarted with updated interval.',
       ...result,
     });
   } catch (err) {

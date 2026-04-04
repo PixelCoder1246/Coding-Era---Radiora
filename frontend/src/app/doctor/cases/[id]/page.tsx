@@ -19,14 +19,5 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  return (
-    <main className="h-screen w-full bg-black flex flex-col overflow-hidden">
-      {/* <div className="flex-none shadow-lg z-50">
-        <Navbar user={user} />
-      </div> */}
-      <div className="flex-1 min-h-0 relative">
-        <CaseDetailClient caseData={result.data} />
-      </div>
-    </main>
-  );
+  return <CaseDetailClient caseData={result.data} />;
 }

@@ -67,3 +67,27 @@ export async function updateCaseStatusAction(caseId: string, status: string) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
+
+export async function deleteCaseAction(caseId: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('radiora_token')?.value;
+
+  if (!token) return { success: false, error: 'Unauthorized' };
+
+  try {
+    const response = await fetch(`${API_URL}/api/cases/${caseId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error((err as { error?: string }).error || 'Failed to delete case');
+    }
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+

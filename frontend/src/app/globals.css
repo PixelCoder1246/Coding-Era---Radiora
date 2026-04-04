@@ -75,6 +75,9 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* main has no top padding — each page component handles its own navbar clearance
+   using margin-top or padding-top: 6.5rem on the first element. */
+
 /* Curvy Textures & Backgrounds */
 .curvy-bg {
   position: relative;
@@ -178,6 +181,17 @@ body.hide-navbar nav {
   display: none !important;
 }
 
-body.hide-navbar nav {
-  display: none !important;
+/* Spin animation for loading indicators */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
 }

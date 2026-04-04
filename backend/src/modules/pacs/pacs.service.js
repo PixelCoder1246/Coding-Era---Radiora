@@ -126,4 +126,136 @@ async function postToOrthanc(filePath, originalName, config) {
   return response.data;
 }
 
-module.exports = { uploadDicom };
+async function listStudies(adminId) {
+  const config = await prisma.integration.findUnique({
+    where: { adminId_type: { adminId, type: 'PACS' } },
+  });
+
+  if (!config || !config.active) {
+    const err = new Error('PACS not active. Activate PACS integration first.');
+    err.status = 503;
+    throw err;
+  }
+
+  const authOpts =
+    config.username && config.password
+      ? { auth: { username: config.username, password: config.password } }
+      : {};
+
+  const response = await axios.get(`${config.url}/studies`, {
+    ...authOpts,
+    timeout: 10000,
+  });
+
+  const orthancIds = Array.isArray(response.data) ? response.data : [];
+
+  // Fetch metadata for each study and check if a case exists in our DB
+  const studies = await Promise.all(
+    orthancIds.map(async (orthancId) => {
+      try {
+        const res = await axios.get(`${config.url}/studies/${orthancId}`, {
+          ...authOpts,
+          timeout: 5000,
+        });
+        const meta = res.data;
+        const mainTags = meta.MainDicomTags || {};
+        const patientTags = meta.PatientMainDicomTags || {};
+
+        const studyInstanceUID = mainTags.StudyInstanceUID || null;
+
+        // Check if this study has a case in our DB
+        const caseRecord = studyInstanceUID
+          ? await prisma.case.findFirst({
+              where: { adminId, studyInstanceUID },
+              select: {
+                id: true,
+                status: true,
+                patientName: true,
+                assignedDoctor: { select: { name: true } },
+              },
+            })
+          : null;
+
+        return {
+          orthancId,
+          studyInstanceUID,
+          accessionNumber: mainTags.AccessionNumber || null,
+          patientId: patientTags.PatientID || mainTags.PatientID || null,
+          patientName: patientTags.PatientName || mainTags.PatientName || null,
+          modality: mainTags.ModalitiesInStudy || mainTags.Modality || null,
+          studyDate: mainTags.StudyDate || null,
+          lastUpdate: meta.LastUpdate || null,
+          seriesCount: (meta.Series || []).length,
+          hasCase: !!caseRecord,
+          caseId: caseRecord?.id || null,
+          caseStatus: caseRecord?.status || null,
+          casePatientName: caseRecord?.patientName || null,
+          caseDoctorName: caseRecord?.assignedDoctor?.name || null,
+        };
+      } catch (err) {
+        return { orthancId, error: err.message };
+      }
+    })
+  );
+
+  return studies;
+}
+
+async function deleteStudy(orthancId, adminId) {
+  const config = await prisma.integration.findUnique({
+    where: { adminId_type: { adminId, type: 'PACS' } },
+  });
+
+  if (!config || !config.active) {
+    const err = new Error('PACS not active. Activate PACS integration first.');
+    err.status = 503;
+    throw err;
+  }
+
+  const authOpts =
+    config.username && config.password
+      ? { auth: { username: config.username, password: config.password } }
+      : {};
+
+  // Get studyInstanceUID before deleting so we can clean up DB
+  let studyInstanceUID = null;
+  try {
+    const res = await axios.get(`${config.url}/studies/${orthancId}`, {
+      ...authOpts,
+      timeout: 5000,
+    });
+    studyInstanceUID = res.data?.MainDicomTags?.StudyInstanceUID || null;
+  } catch {
+    // Study might already be gone — still try to clean up DB
+  }
+
+  // Delete from Orthanc
+  try {
+    await axios.delete(`${config.url}/studies/${orthancId}`, {
+      ...authOpts,
+      timeout: 10000,
+    });
+  } catch (err) {
+    const error = new Error(`Failed to delete from Orthanc: ${err.message}`);
+    error.status = 502;
+    throw error;
+  }
+
+  // Clean up DB so polling can re-capture this study
+  if (studyInstanceUID) {
+    const caseRecord = await prisma.case.findFirst({
+      where: { adminId, studyInstanceUID },
+    });
+    if (caseRecord) {
+      await prisma.aiResult.deleteMany({ where: { caseId: caseRecord.id } });
+      await prisma.report.deleteMany({ where: { caseId: caseRecord.id } });
+      await prisma.case.delete({ where: { id: caseRecord.id } });
+    }
+    await prisma.processedStudy.deleteMany({ where: { adminId, studyInstanceUID } });
+  }
+
+  return { message: 'Study deleted from Orthanc. Database records cleared — polling will re-capture on next cycle.' };
+}
+
+module.exports = { uploadDicom, listStudies, deleteStudy };
+

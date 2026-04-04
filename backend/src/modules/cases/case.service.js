@@ -1,4 +1,5 @@
 const prisma = require('../../config/db');
+const axios = require('axios');
 
 async function listCases(user) {
   const where =
@@ -177,4 +178,50 @@ async function updateCaseStatus(caseId, status, user) {
   return updated;
 }
 
-module.exports = { listCases, getCaseById, assignDoctor, updateCaseStatus };
+async function deleteCase(caseId, adminId) {
+  const existing = await prisma.case.findUnique({ where: { id: caseId } });
+  if (!existing) {
+    const err = new Error('Case not found.');
+    err.status = 404;
+    throw err;
+  }
+  if (existing.adminId !== adminId) {
+    const err = new Error('Forbidden.');
+    err.status = 403;
+    throw err;
+  }
+
+  // Best-effort delete from Orthanc so the scan can be re-uploaded and re-polled
+  const pacsConfig = await prisma.integration.findUnique({
+    where: { adminId_type: { adminId, type: 'PACS' } },
+  });
+  if (pacsConfig) {
+    const authOpts =
+      pacsConfig.username && pacsConfig.password
+        ? { auth: { username: pacsConfig.username, password: pacsConfig.password } }
+        : {};
+    try {
+      await axios.delete(`${pacsConfig.url}/studies/${existing.orthancId}`, {
+        ...authOpts,
+        timeout: 10000,
+      });
+      console.log(`[CASE] Deleted Orthanc study ${existing.orthancId}`);
+    } catch (err) {
+      console.warn(`[CASE] Could not delete Orthanc study ${existing.orthancId}:`, err.message);
+    }
+  }
+
+  // Remove from ProcessedStudy so polling can re-capture it on next cycle
+  await prisma.processedStudy.deleteMany({
+    where: { adminId, studyInstanceUID: existing.studyInstanceUID },
+  });
+
+  // Delete related records (schema has no onDelete cascade)
+  await prisma.aiResult.deleteMany({ where: { caseId } });
+  await prisma.report.deleteMany({ where: { caseId } });
+  await prisma.case.delete({ where: { id: caseId } });
+
+  return { message: 'Case deleted. Scan removed from PACS — polling will re-capture on next cycle.' };
+}
+
+module.exports = { listCases, getCaseById, assignDoctor, updateCaseStatus, deleteCase };

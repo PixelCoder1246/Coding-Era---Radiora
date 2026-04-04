@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Loader2, Calendar, Layers, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import styles from '@/components/Doctor.module.css';
 import { getCasesAction } from '@/lib/actions/cases';
 
@@ -17,6 +17,12 @@ interface Case {
   accessionNumber: string;
 }
 
+const STATUS_COLOR: Record<string, string> = {
+  PENDING_REVIEW: '#f59e0b',
+  IN_REVIEW: '#3b82f6',
+  COMPLETED: '#10b981',
+};
+
 export default function DoctorDashboardClient() {
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,9 +31,7 @@ export default function DoctorDashboardClient() {
   useEffect(() => {
     async function loadCases() {
       const result = await getCasesAction();
-      if (result.success) {
-        setCases(result.data);
-      }
+      if (result.success) setCases(result.data);
       setLoading(false);
     }
     loadCases();
@@ -35,10 +39,8 @@ export default function DoctorDashboardClient() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="animate-spin text-slate-700" size={32} />
-        </div>
+      <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#64748b' }} />
       </div>
     );
   }
@@ -48,54 +50,69 @@ export default function DoctorDashboardClient() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Worklist</h1>
-          <p className={styles.subtitle}>{cases.length} assigned studies</p>
+          <p className={styles.subtitle}>{cases.length} assigned {cases.length === 1 ? 'study' : 'studies'}</p>
         </div>
-
-        <div className="flex gap-4 items-center">{/* Minimalism: No search or filters */}</div>
       </header>
 
-      {/* Row-based high-density clinical worklist */}
-      <div className={styles.grid}>
-        {/* Table Header Mockup */}
-        <div
-          className={`${styles.card} border-b border-slate-900 opacity-40 font-bold uppercase tracking-widest text-[10px] pointer-events-none hover:bg-transparent`}
-        >
-          <span>Type</span>
-          <span>Patient Name</span>
-          <span>Accession</span>
-          <span>Assigned Date</span>
-          <span>Clinical Status</span>
-          <span />
+      {cases.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '5rem 0', color: '#64748b' }}>
+          <p style={{ fontSize: '0.9rem', fontWeight: 500 }}>All clear. No studies requiring attention.</p>
         </div>
-
-        {cases.map(study => (
-          <div key={study.id} className={styles.card} onClick={() => router.push(`/doctor/cases/${study.id}`)}>
-            <div className={styles.modalityBadge}>{study.modality}</div>
-
-            <div className="flex flex-col">
-              <span className={styles.patientName}>{study.patientName}</span>
-              <span className={styles.patientId}>{study.patientId}</span>
-            </div>
-
-            <span className="font-mono text-xs text-slate-500">{study.accessionNumber}</span>
-
-            <span className="text-slate-500 text-xs">{new Date(study.createdAt).toLocaleDateString()}</span>
-
-            <div className={`${styles.statusIndicator} ${styles[`status-${study.status}`]}`}>
-              <div className={styles.pulser} />
-              <span>{study.status.replace('_', ' ')}</span>
-            </div>
-
-            <div className="flex justify-end pr-2">
-              <ArrowUpRight size={14} className="text-slate-700 transition-colors group-hover:text-blue-500" />
-            </div>
+      ) : (
+        <div className={styles.grid}>
+          {/* Column header */}
+          <div
+            className={styles.card}
+            style={{
+              opacity: 0.45, fontWeight: 700, textTransform: 'uppercase',
+              fontSize: '0.65rem', letterSpacing: '0.1em', pointerEvents: 'none',
+              cursor: 'default',
+            }}
+          >
+            <span>Type</span>
+            <span>Patient</span>
+            <span>Accession</span>
+            <span>Date</span>
+            <span>Status</span>
+            <span />
           </div>
-        ))}
-      </div>
 
-      {cases.length === 0 && (
-        <div className="text-center py-32">
-          <p className="text-slate-700 text-sm font-medium">All clear. No studies requiring attention.</p>
+          {cases.map(study => (
+            <div
+              key={study.id}
+              className={styles.card}
+              onClick={() => router.push(`/doctor/cases/${study.id}`)}
+            >
+              <span className={styles.modalityBadge}>{study.modality}</span>
+
+              <div>
+                <div className={styles.patientName}>{study.patientName}</div>
+                <div className={styles.patientId}>{study.patientId}</div>
+              </div>
+
+              <span style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: '#64748b' }}>
+                {study.accessionNumber}
+              </span>
+
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                {new Date(study.createdAt).toLocaleDateString()}
+              </span>
+
+              <div className={styles.statusIndicator}>
+                <div
+                  className={styles.pulser}
+                  style={{ background: STATUS_COLOR[study.status] ?? '#64748b' }}
+                />
+                <span style={{ color: STATUS_COLOR[study.status] ?? '#64748b', fontWeight: 600 }}>
+                  {study.status.replace(/_/g, ' ')}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingRight: '0.5rem' }}>
+                <ArrowUpRight size={14} style={{ color: '#64748b' }} />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

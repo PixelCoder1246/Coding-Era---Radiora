@@ -1,10 +1,38 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, BrainCircuit, Loader2, PanelRightClose, PanelRightOpen, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ArrowLeft,
+  BrainCircuit,
+  PanelRightClose,
+  PanelRightOpen,
+  ExternalLink,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import styles from '@/components/Doctor.module.css';
-import { updateCaseStatusAction } from '@/lib/actions/cases';
+import { updateCaseStatusAction, getCaseDetailsAction } from '@/lib/actions/cases';
+
+interface Annotation {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label: string;
+  confidence: number;
+}
+
+interface AiResult {
+  id: string;
+  findings: string;
+  confidence: number;
+  annotations: Annotation[];
+  analyzedAt: string;
+}
 
 interface CaseDetails {
   id: string;
@@ -16,55 +44,42 @@ interface CaseDetails {
   bodyPart: string;
   accessionNumber: string;
   studyDate: string;
-  pacsViewerUrl: string | null; // OHIF via OE2
-  pacsWebViewerUrl: string | null; // Orthanc Web Viewer (reliable)
   status: string;
+  aiStatus: string;
+  pacsViewerUrl: string | null;
+  pacsWebViewerUrl: string | null;
+  aiResult?: AiResult | null;
 }
 
-interface AiResult {
-  findings: string;
-  confidence: number;
-  annotations: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    label: string;
-    confidence: number;
-  }[];
-}
-
-export default function CaseDetailClient({ caseData }: { caseData: CaseDetails }) {
-  const [loadingAi, setLoadingAi] = useState(false);
-  const [aiResult, setAiResult] = useState<AiResult | null>(null);
+export default function CaseDetailClient({ caseData: initialData }: { caseData: CaseDetails }) {
+  const [caseData, setCaseData] = useState<CaseDetails>(initialData);
   const [sidePanelOpen, setSidePanelOpen] = useState(true);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [isRefreshingAi, setIsRefreshingAi] = useState(false);
   const [findings, setFindings] = useState('');
-  const [viewerLoaded, setViewerLoaded] = useState(false);
+  const [iframeLoading, setIframeLoading] = useState(!!caseData.pacsViewerUrl);
+  const [showAnnotations, setShowAnnotations] = useState(true);
   const router = useRouter();
 
-  // Explorer is primary (confirmed working). Web viewer is secondary option.
-  const primaryViewerUrl = caseData.pacsViewerUrl;
-  const secondaryViewerUrl = caseData.pacsWebViewerUrl;
+  const aiResult: AiResult | null = caseData.aiResult ?? null;
+  const annotations: Annotation[] = Array.isArray(aiResult?.annotations)
+    ? (aiResult!.annotations as Annotation[])
+    : [];
 
+  // Mark in-review on mount
   useEffect(() => {
     if (caseData.status === 'PENDING_REVIEW') {
       updateCaseStatusAction(caseData.id, 'IN_REVIEW');
     }
   }, [caseData.id, caseData.status]);
 
-  const simulateAi = () => {
-    setLoadingAi(true);
-    setAiResult(null);
-    setTimeout(() => {
-      setAiResult({
-        findings: 'Nodule detected in right lower lobe.',
-        confidence: 0.89,
-        annotations: [{ x: 48, y: 32, width: 70, height: 70, label: 'suspected_lesion', confidence: 0.89 }],
-      });
-      setLoadingAi(false);
-    }, 2800);
-  };
+  // Refresh AI results from backend
+  const refreshAi = useCallback(async () => {
+    setIsRefreshingAi(true);
+    const result = await getCaseDetailsAction(caseData.id);
+    if (result.success) setCaseData(result.data);
+    setIsRefreshingAi(false);
+  }, [caseData.id]);
 
   const handleFinish = async () => {
     setIsFinishing(true);
@@ -76,49 +91,119 @@ export default function CaseDetailClient({ caseData }: { caseData: CaseDetails }
     }
   };
 
+  const aiStatusIcon = () => {
+    switch (caseData.aiStatus) {
+      case 'COMPLETED': return <CheckCircle size={13} style={{ color: '#a78bfa' }} />;
+      case 'PROCESSING': return <Loader2 size={13} style={{ color: '#f59e0b', animation: 'spin 1s linear infinite' }} />;
+      case 'FAILED': return <AlertCircle size={13} style={{ color: '#ef4444' }} />;
+      default: return <Clock size={13} style={{ color: '#64748b' }} />;
+    }
+  };
+
   return (
     <div className={styles.studyContainer}>
-      {/* Maximized Viewer Pane */}
+      {/* Viewer Pane */}
       <div className={styles.viewerPane}>
-        {/* Back */}
+
+        {/* Back button */}
         <button
-          className="absolute top-6 left-6 z-50 bg-slate-900/80 p-2 rounded-full border border-slate-800 text-slate-400 hover:text-white transition-colors"
+          style={{
+            position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 50,
+            background: 'rgba(15,23,42,0.85)', padding: '0.5rem', borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8',
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            transition: 'all 0.2s',
+          }}
           onClick={() => router.push('/doctor')}
         >
           <ArrowLeft size={16} />
         </button>
 
-        {/* Open in Stone Viewer button (secondary) */}
-        {secondaryViewerUrl && (
+        {/* Stone Viewer link */}
+        {caseData.pacsWebViewerUrl && (
           <a
-            href={secondaryViewerUrl}
+            href={caseData.pacsWebViewerUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute top-6 left-20 z-50 bg-slate-900/80 px-3 py-2 rounded-full border border-slate-800 text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-xs font-semibold"
+            style={{
+              position: 'absolute', top: '1.5rem', left: '4.5rem', zIndex: 50,
+              background: 'rgba(15,23,42,0.85)', padding: '0.5rem 0.875rem',
+              borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)',
+              color: '#94a3b8', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem',
+              fontWeight: 700, textDecoration: 'none', transition: 'all 0.2s',
+            }}
           >
             <ExternalLink size={13} />
-            Stone Viewer
+            STONE VIEWER
           </a>
         )}
 
-        {primaryViewerUrl ? (
-          <iframe
-            key={primaryViewerUrl}
-            src={primaryViewerUrl}
-            className={styles.viewerFrame}
-            title="DICOM Diagnostic Workspace"
-            allow="cross-origin-isolated"
-          />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p className="text-slate-600 text-sm font-medium">No PACS viewer configured.</p>
+        {/* AI status badge — click to toggle annotation overlay */}
+        <button
+          onClick={() => setShowAnnotations(v => !v)}
+          style={{
+            position: 'absolute', bottom: '2rem', left: '2rem', zIndex: 50,
+            background: showAnnotations ? 'rgba(15,23,42,0.9)' : 'rgba(30,10,60,0.9)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${showAnnotations ? 'rgba(167,139,250,0.3)' : 'rgba(167,139,250,0.6)'}`,
+            padding: '0.6rem 1rem',
+            borderRadius: '9999px',
+            color: '#a78bfa', fontSize: '0.8rem',
+            fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.6rem',
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}
+        >
+          <BrainCircuit size={14} />
+          {aiStatusIcon()}
+          <span>
+            {caseData.aiStatus === 'COMPLETED'
+              ? showAnnotations ? '✦ AI Overlays ON' : '✧ AI Overlays OFF'
+              : caseData.aiStatus === 'PROCESSING' ? 'AI Analyzing…'
+                : caseData.aiStatus === 'FAILED' ? 'AI Failed'
+                  : 'No AI Analysis'}
+          </span>
+        </button>
+
+        {/* Iframe loader overlay */}
+        {iframeLoading && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            background: '#000', zIndex: 20, gap: '1rem',
+          }}>
+            <Loader2 size={36} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
+            <p style={{ color: '#475569', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.08em' }}>
+              LOADING DIAGNOSTIC VIEW…
+            </p>
           </div>
         )}
 
-        {/* AI Bounding Box Overlay */}
-        {aiResult && (
+        {/* DICOM viewer iframe */}
+        {caseData.pacsViewerUrl ? (
+          <iframe
+            key={caseData.pacsViewerUrl}
+            src={caseData.pacsViewerUrl}
+            className={styles.viewerFrame}
+            title="DICOM Viewer"
+            allow="cross-origin-isolated"
+            onLoad={() => setIframeLoading(false)}
+          />
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '0.75rem', color: '#475569',
+          }}>
+            <p style={{ fontSize: '0.9rem', fontWeight: 500 }}>No PACS viewer configured.</p>
+            <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Ask your admin to set up the PACS integration.</p>
+          </div>
+        )}
+
+        {/* AI bounding box overlay — togglable */}
+        {aiResult && annotations.length > 0 && !iframeLoading && showAnnotations && (
           <div className={styles.aiOverlay}>
-            {aiResult.annotations.map((ann, i) => (
+            {annotations.map((ann, i) => (
               <div
                 key={i}
                 className={styles.boundingBox}
@@ -136,95 +221,145 @@ export default function CaseDetailClient({ caseData }: { caseData: CaseDetails }
             ))}
           </div>
         )}
-
-        {/* Floating AI Button */}
-        <button className={styles.aiToggle} onClick={simulateAi} disabled={loadingAi}>
-          {loadingAi ? <Loader2 className="animate-spin" size={14} /> : <BrainCircuit size={14} />}
-          <span>{loadingAi ? 'Extracting Insights...' : 'Assistant AI'}</span>
-        </button>
       </div>
 
       {/* Side Panel */}
       <aside
         className={styles.sidePanel}
-        style={{ width: sidePanelOpen ? '320px' : '0', borderLeft: sidePanelOpen ? '' : 'none' }}
+        style={{
+          width: sidePanelOpen ? '320px' : '0',
+          borderLeft: sidePanelOpen ? undefined : 'none',
+        }}
       >
         <div className={styles.panelHeader}>
-          <span className="font-bold text-xs uppercase tracking-widest text-slate-500">Study Details</span>
-          <button className="text-slate-600 hover:text-white transition-colors" onClick={() => setSidePanelOpen(false)}>
+          <span style={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>
+            Study Details
+          </span>
+          <button
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: '0.25rem' }}
+            onClick={() => setSidePanelOpen(false)}
+          >
             <PanelRightClose size={18} />
           </button>
         </div>
 
         <div className={styles.panelContent}>
-          <div className="space-y-2">
-            <div>
-              <div className={styles.sectionTitle}>Patient Information</div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Full Name</span>
-                <span className={styles.detailValue}>{caseData.patientName}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Medical ID</span>
-                <span className={styles.detailValue}>{caseData.patientId}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Contact Email</span>
-                <span className={styles.detailValue}>{caseData.patientEmail}</span>
-              </div>
+          {/* Patient */}
+          <div className={styles.sectionTitle}>Patient</div>
+          {[
+            { label: 'Name', value: caseData.patientName },
+            { label: 'ID', value: caseData.patientId },
+            { label: 'Email', value: caseData.patientEmail || '—' },
+            { label: 'Phone', value: caseData.patientPhone || '—' },
+          ].map(({ label, value }) => (
+            <div key={label} className={styles.detailItem}>
+              <span className={styles.detailLabel}>{label}</span>
+              <span className={styles.detailValue}>{value}</span>
             </div>
+          ))}
 
-            <div className="mt-4">
-              <div className={styles.sectionTitle}>Study Findings</div>
+          {/* Study */}
+          <div className={styles.sectionTitle} style={{ marginTop: '1.5rem' }}>Study</div>
+          {[
+            { label: 'Accession', value: caseData.accessionNumber },
+            { label: 'Modality', value: `${caseData.modality}${caseData.bodyPart ? ` · ${caseData.bodyPart}` : ''}` },
+            { label: 'Date', value: caseData.studyDate ? new Date(caseData.studyDate).toLocaleDateString() : '—' },
+          ].map(({ label, value }) => (
+            <div key={label} className={styles.detailItem}>
+              <span className={styles.detailLabel}>{label}</span>
+              <span className={styles.detailValue}>{value}</span>
+            </div>
+          ))}
+
+          {/* AI Results */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem', marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.075em', color: '#a78bfa' }}>AI Insights</span>
+            <button
+              onClick={refreshAi}
+              disabled={isRefreshingAi}
+              title="Refresh AI results"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#a78bfa', display: 'flex', alignItems: 'center', padding: '0.2rem',
+                opacity: isRefreshingAi ? 0.5 : 1,
+              }}
+            >
+              <RefreshCw size={14} style={isRefreshingAi ? { animation: 'spin 1s linear infinite' } : {}} />
+            </button>
+          </div>
+
+          {aiResult ? (
+            <>
               <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Accession Number</span>
-                <span className={styles.detailValue}>{caseData.accessionNumber}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Modality</span>
-                <span className={styles.detailValue}>
-                  {caseData.modality} ({caseData.bodyPart})
+                <span className={styles.detailLabel}>Findings</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--foreground)', lineHeight: 1.5, fontWeight: 500 }}>
+                  {aiResult.findings}
                 </span>
               </div>
               <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Study Date</span>
-                <span className={styles.detailValue}>{new Date(caseData.studyDate).toLocaleDateString()}</span>
+                <span className={styles.detailLabel}>Confidence</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                  <div style={{ flex: 1, height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ width: `${Math.round(aiResult.confidence * 100)}%`, height: '100%', background: '#a78bfa', borderRadius: '2px' }} />
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a78bfa' }}>
+                    {Math.round(aiResult.confidence * 100)}%
+                  </span>
+                </div>
               </div>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>Analyzed</span>
+                <span className={styles.detailValue}>{new Date(aiResult.analyzedAt).toLocaleString()}</span>
+              </div>
+            </>
+          ) : (
+            <div style={{
+              padding: '1.25rem', background: 'rgba(100,116,139,0.05)',
+              borderRadius: '0.5rem', border: '1px dashed rgba(100,116,139,0.2)',
+              textAlign: 'center',
+            }}>
+              <BrainCircuit size={20} style={{ margin: '0 auto 0.5rem', opacity: 0.25, display: 'block', color: '#a78bfa' }} />
+              <p style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5 }}>
+                {caseData.aiStatus === 'PROCESSING'
+                  ? 'AI analysis in progress… click refresh to check.'
+                  : caseData.aiStatus === 'FAILED'
+                    ? 'AI analysis failed. Try re-uploading the study.'
+                    : 'No AI analysis for this study yet.'}
+              </p>
             </div>
-
-            {aiResult && (
-              <div className="mt-6 pt-6 border-t border-slate-900">
-                <div className={styles.sectionTitle} style={{ color: '#a78bfa' }}>
-                  AI Insights
-                </div>
-                <p className="text-sm text-slate-300 leading-relaxed font-medium">{aiResult.findings}</p>
-                <div className="text-[10px] text-slate-500 mt-2 font-bold">
-                  CONFIDENCE: {Math.round(aiResult.confidence * 100)}%
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
+        {/* Reporting area */}
         <div className={styles.reportingArea}>
           <textarea
             className={styles.findingInput}
-            placeholder="Type clinical impressions..."
+            placeholder="Clinical impressions…"
             value={findings}
             onChange={e => setFindings(e.target.value)}
           />
           <button className={styles.actionButton} onClick={handleFinish} disabled={isFinishing}>
-            {isFinishing ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Complete Review & Sign'}
+            {isFinishing
+              ? <Loader2 style={{ animation: 'spin 1s linear infinite', margin: '0 auto', display: 'block' }} size={18} />
+              : 'Complete Review & Sign'}
           </button>
         </div>
       </aside>
 
+      {/* Sidebar pull-tab to reopen */}
       {!sidePanelOpen && (
         <button
-          className="absolute top-6 right-6 z-50 bg-slate-900/80 p-2 rounded-full border border-slate-800 text-slate-400 hover:text-white transition-colors"
+          style={{
+            position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
+            zIndex: 1010, background: 'rgba(15,23,42,0.9)',
+            padding: '1.25rem 0.5rem', borderRadius: '0.75rem 0 0 0.75rem',
+            border: '1px solid rgba(167,139,250,0.3)', borderRight: 'none',
+            color: '#a78bfa', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            boxShadow: '-4px 0 20px rgba(0,0,0,0.4)',
+          }}
           onClick={() => setSidePanelOpen(true)}
         >
-          <PanelRightOpen size={16} />
+          <PanelRightOpen size={18} />
         </button>
       )}
     </div>

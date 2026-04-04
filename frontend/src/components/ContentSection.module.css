@@ -1,5 +1,5 @@
 .section {
-  padding: 8rem 2rem;
+  padding: 6.5rem 2rem 8rem; /* 6.5rem clears navbar, 8rem bottom for footer breathing room */
   max-width: 1000px;
   margin: 0 auto;
   min-height: 60vh;

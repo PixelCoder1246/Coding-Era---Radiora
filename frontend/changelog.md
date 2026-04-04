@@ -4,6 +4,37 @@ All notable changes to the Radiora-frontend will be documented here.
 
 ---
 
+## [0.3.1] - 2026-04-05
+
+### Changed
+
+- **Admin Dashboard — Doctor Registry**: Renamed "Physician Registry" → "Doctor Registry" and "Register Specialist" → "Register Doctor" throughout the dashboard.
+- **Admin Dashboard — Admin Profile**: Restored Name, Email, and Role fields (was showing only Email and Access Level).
+- **Admin Dashboard — Integration Labels**: Renamed "Clinical Connectivity" → "Server Connectivity".
+- **Admin Dashboard — Layout Overhaul**: Completely rewrote `AdminDashboard.module.css` — compacted all sections, reduced padding, fixed card sizes, made all colors use CSS theme variables for proper dark/light mode support.
+- **Admin Dashboard — Section Spacing**: Fixed heading-to-content gap across all sections (Registered Doctors, Server Connectivity, All Cases, PACS Studies) — removed inline `marginBottom: 1.5rem` so flexbox gap controls spacing uniformly.
+- **Admin Dashboard — Integration Cards**: Fixed button alignment — Save/Activate buttons now pin to the bottom of both HIS and PACS cards regardless of content height, using `margin-top: auto` on the action row.
+- **Admin Dashboard — Empty State**: Doctor grid now shows a proper empty state message when no doctors are registered.
+- **Admin Dashboard — Doctor Avatars**: Doctor cards now show the first letter of the doctor's name instead of generic "Dr".
+
+### Added
+
+- **Admin Dashboard — Reset Animation**: Premium `spinOnce` CSS keyframe animation on the reset-password button icon — spins 360° on hover.
+- **Homepage — Full Rebuild**: Complete redesign of `Hero.tsx` and `page.tsx`:
+  - Two-column layout (text left, product screenshot right) that fits within 100vh.
+  - Real product screenshot (`/image.png`) displayed in a browser chrome frame, replacing the placeholder mockup.
+  - "How It Works" section — 3-step cards with arrow connectors.
+  - "Platform Capabilities" section — 6 feature cards with color-matched hover effects.
+  - "Built for Every Role" section — Admin vs Doctor two-column breakdown with checklists.
+  - Full-page CTA section at bottom with auth-aware buttons.
+- **READMEs**: Created/rewrote `README.md` at root, `backend/README.md`, and `frontend/README.md` with accurate setup steps, env examples, scripts, and route references.
+
+### Fixed
+
+- **Auth Pages (Login/Register)**: Full dark/light theme support via CSS variables; fixed background color inconsistency and typography sizing.
+
+---
+
 ## [0.3.0] - 2026-04-04 (Phase 2 Completed)
 
 ### Added

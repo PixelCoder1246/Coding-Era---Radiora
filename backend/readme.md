@@ -1,193 +1,106 @@
-# Radiora Backend
+# Radiora — Backend
 
-The backend service for **Radiora** — a medical imaging workflow platform. It handles authentication, integration configuration, and system orchestration for connecting PACS (Orthanc), HIS, and the frontend application.
-
----
-
-## Tech Stack
-
-| Tool                 | Purpose                        |
-| -------------------- | ------------------------------ |
-| Node.js + Express.js | HTTP server and routing        |
-| PostgreSQL           | Primary database               |
-| Prisma ORM           | Database access and migrations |
-| JWT                  | Stateless authentication       |
-| bcrypt               | Password hashing               |
-
-## Project Structure
-
-```
-backend/
-  src/
-    app.js              ← Express app: middleware, routes, error handlers
-    server.js           ← Entry point: DB connect → listen
-
-    config/
-      db.js             ← Prisma client singleton
-
-    modules/
-      auth/             ← Register, login, JWT issuance
-      integration/      ← PACS + HIS config and activation
-      cases/            ← Case listing, detail, assignment, AI callback
-      his/              ← HIS proxy (create patient, create order)
-      pacs/             ← PACS upload (stream DICOM to Orthanc)
-      admin/            ← Admin: doctor creation, listing, deletion, password reset
-      report/           ← Doctor report submission
-      portal/           ← Public patient portal (token-based report access)
-
-    middleware/
-      auth.middleware.js ← Bearer token verification + requireRole guard
-
-    utils/
-      jwt.js            ← signToken / verifyToken helpers
-      ai.js             ← non-blocking AI trigger with orthancUrl forwarding
-      email.js          ← SendGrid email sender
-
-    services/
-      polling.service.js  ← per-admin PACS polling, HIS matching, case creation
-      assignment.service.js ← least-loaded doctor auto-assignment
-
-  prisma/
-    schema.prisma       ← DB schema (User, Integration, Case, ProcessedStudy, Report, AiResult)
-
-  docs/
-    api.md              ← Full API reference (endpoints, workflows, env vars)
-```
+Node.js/Express API server powering the Radiora clinical workflow. Handles authentication, case management, PACS polling, HIS integration, and AI callbacks.
 
 ---
 
-## Setup
+## Stack
+
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **Database**: PostgreSQL via Prisma ORM
+- **Auth**: JWT (HTTP-only cookies)
+- **PACS**: Orthanc REST API integration
+- **Email**: SendGrid (optional, for notifications)
+
+---
+
+## Local Setup
 
 ### 1. Install dependencies
 
 ```bash
+cd backend
 npm install
 ```
 
 ### 2. Configure environment
 
-Fill in `.env` with your values:
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and fill in:
 
 ```env
 PORT=3000
-DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/radiora
-JWT_SECRET=your_secret_here
+DATABASE_URL="postgresql://user:password@localhost:5432/radiora"
+JWT_SECRET=your_secret_key_here
 JWT_EXPIRES_IN=7d
 FRONTEND_URL=http://localhost:3001
 BACKEND_URL=http://localhost:3000
 
-# SendGrid (Phase 3 — email notifications)
-SENDGRID_API_KEY=your_sendgrid_api_key
-EMAIL_FROM=noreply@radiora.app
+# Optional: AI inference service
+AI_BASE_URL=http://localhost:8000
 
-# AI Service (Phase 3 — optional)
-AI_BASE_URL=
+# Optional: Email notifications
+SENDGRID_API_KEY=your_sendgrid_key
+EMAIL_FROM=noreply@yourdomain.com
 ```
 
-### 3. Run database migration
+### 3. Set up the database
 
 ```bash
-npx prisma migrate dev --name init
+npm run prisma:migrate
+# Applies all migrations and generates the Prisma client
 ```
 
-### 4. Start dev server
+### 4. Start the server
 
 ```bash
 npm run dev
+# Development mode with hot reload — http://localhost:3000
 ```
 
-Server starts at `http://localhost:3000`.
+---
+
+## Key API Routes
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `POST` | `/api/auth/register` | Create admin account |
+| `POST` | `/api/auth/login` | Login (returns JWT cookie) |
+| `GET` | `/api/cases` | List all cases for the admin |
+| `POST` | `/api/integrations/pacs` | Save PACS (Orthanc) config |
+| `POST` | `/api/integrations/pacs/activate` | Start polling Orthanc |
+| `POST` | `/api/integrations/his` | Save HIS config |
+| `POST` | `/api/integrations/his/activate` | Activate HIS connectivity |
+| `GET` | `/api/pacs/studies` | List studies currently in Orthanc |
+| `POST` | `/api/cases/:id/report` | Doctor submits a report |
+| `POST` | `/api/cases/:id/ai-result` | AI service posts back results |
 
 ---
 
-## API Endpoints (Phase 1)
+## PACS Polling
 
-### Auth
+Once PACS is activated via the admin dashboard:
 
-| Method | Route                | Access |
-| ------ | -------------------- | ------ |
-| `POST` | `/api/auth/register` | Public |
-| `POST` | `/api/auth/login`    | Public |
+1. The server polls Orthanc every N seconds (configurable per admin).
+2. Each new study is matched to a HIS order via `AccessionNumber`.
+3. A case is created and auto-assigned to an available doctor.
+4. AI analysis is triggered if `AI_BASE_URL` is set.
 
-### Integrations
-
-| Method | Route                             | Access        |
-| ------ | --------------------------------- | ------------- |
-| `POST` | `/api/integrations/pacs`          | Admin         |
-| `POST` | `/api/integrations/his`           | Admin         |
-| `GET`  | `/api/integrations/status`        | Authenticated |
-| `POST` | `/api/integrations/pacs/activate` | Admin         |
-| `POST` | `/api/integrations/his/activate`  | Admin         |
-
-### Health
-
-| Method | Route     | Access |
-| ------ | --------- | ------ |
-| `GET`  | `/health` | Public |
-
-### Cases
-
-| Method | Route | Access |
-|---|---|---|
-| `GET` | `/api/cases` | Authenticated |
-| `GET` | `/api/cases/:caseId` | Authenticated |
-| `POST` | `/api/cases/:caseId/assign` | Admin |
-
-### HIS Proxy (Demo/Testing)
-
-| Method | Route | Access |
-|---|---|---|
-| `POST` | `/api/his/patients` | Public |
-| `POST` | `/api/his/orders` | Public |
-
-### PACS Upload (Demo/Testing)
-
-| Method | Route | Access |
-|---|---|---|
-| `POST` | `/api/pacs/upload` | Public |
-
-### Admin
-
-| Method | Route | Access |
-|---|---|---|
-| `POST`  | `/api/admin/doctors` | Admin |
-| `GET`   | `/api/admin/doctors` | Admin |
-| `DELETE` | `/api/admin/doctors/:doctorId` | Admin |
-| `PATCH` | `/api/admin/doctors/:doctorId/reset-password` | Admin |
-
-### Integrations — full config retrieval
-
-| Method | Route | Access |
-|---|---|---|
-| `GET` | `/api/integrations/pacs` | Admin |
-| `GET` | `/api/integrations/his` | Admin |
-
-### Cases
-
-| Method | Route | Access |
-|---|---|---|
-| `POST` | `/api/cases/:caseId/report` | Doctor |
-| `PATCH` | `/api/cases/:caseId/status` | Admin / Doctor |
-| `POST` | `/api/cases/:caseId/resend-notification` | Doctor |
-| `POST` | `/api/cases/:caseId/ai-result` | Public (AI callback) |
-
-### Patient Portal
-
-| Method | Route | Access |
-|---|---|---|
-| `GET` | `/api/portal/report/:token` | Public |
+> **Note:** Both HIS and PACS must be active for polling to create cases.
 
 ---
 
-## Notes
+## Scripts
 
-- **PACS** uses [Orthanc](https://www.orthanc-server.com/) which must be running locally for activation to succeed.
-- **HIS** is a mock service — activation points to a separately running HIS process.
-- Activation endpoints make a live HTTP request to validate connectivity before marking an integration as active.
-- Deleting a doctor is blocked (`409`) if they have submitted reports — medical records are permanent.
-
----
-
-## Version
-
-**Current Version: 0.3.5**
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start with nodemon (hot reload) |
+| `npm start` | Start in production mode |
+| `npm run prisma:migrate` | Run DB migrations |
+| `npm run prisma:generate` | Regenerate Prisma client |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Run Prettier |
