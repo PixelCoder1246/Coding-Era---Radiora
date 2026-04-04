@@ -4,6 +4,18 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.7] - 2026-04-03
+
+### Fixed
+- **Deep Metadata Extraction**: Polling now fetches `BodyPartExamined` from the first DICOM series if study-level tags are missing in Orthanc.
+- **HIS Metadata Fallback**: Implemented a robust fallback mechanism that uses HIS order details (modality/body part) when DICOM metadata is unavailable or incomplete.
+- **Modality/BodyPart Normalization**: Improved handling of multi-value DICOM tags (e.g., dual modality scans) by automatically joining them with `/` for database consistency.
+
+### Added
+- **AI Service Configuration Documentation**: Clarified the use of `AI_BASE_URL` and `BACKEND_URL` for non-blocking analysis triggers.
+
+---
+
 ## [0.3.6] - 2026-04-03
 
 ### Added
