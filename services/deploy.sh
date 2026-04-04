@@ -63,9 +63,22 @@ echo ""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# ── Detect docker compose command (plugin vs standalone) ──────────────────────
+if docker compose version &> /dev/null 2>&1; then
+  COMPOSE="docker compose"
+elif docker-compose version &> /dev/null 2>&1; then
+  COMPOSE="docker-compose"
+else
+  echo "Docker Compose not found. Installing..."
+  sudo apt-get update -qq
+  sudo apt-get install -y -qq docker-compose-plugin
+  COMPOSE="docker compose"
+fi
+echo "      Using: ${COMPOSE}"
+
 # ── Step 1: Start Docker containers ──────────────────────────────────────────
 echo "[1/3] Starting Radiora Docker containers..."
-docker compose up -d --build
+$COMPOSE up -d --build
 echo "      ✓ HIS running on 127.0.0.1:3010"
 echo "      ✓ Orthanc running on 127.0.0.1:8042"
 echo "      ✓ DICOM running on 0.0.0.0:4242"
