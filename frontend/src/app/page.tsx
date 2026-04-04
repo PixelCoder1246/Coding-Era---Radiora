@@ -1,20 +1,25 @@
-import Hero from "@/components/Hero";
+import React from 'react';
+import Hero from '@/components/Hero';
 import { Database, ShieldCheck, Brain } from 'lucide-react';
 import styles from './Home.module.css';
 import { Metadata } from 'next';
+import { getAuthStatusAction } from '@/lib/actions/auth';
 
 export const metadata: Metadata = {
-  title: "Medical Imaging Workflow & Orchestration Platform",
-  description: "Radiora optimizes radiology workflows by connecting DICOM PACS, HL7 HIS, and AI diagnostic triage into a single unified workspace.",
+  title: 'Medical Imaging Workflow & Orchestration Platform',
+  description:
+    'Radiora optimizes radiology workflows by connecting DICOM PACS, HL7 HIS, and AI diagnostic triage into a single unified workspace.',
 };
 
-export default function Home() {
+export default async function Home() {
+  const user = await getAuthStatusAction();
+
   return (
     <>
       <section className={styles.heroWrapper}>
-        <Hero />
+        <Hero user={user} />
       </section>
-      
+
       <section id="features" className={styles.featuresSection}>
         <div className={styles.curvyDivider}></div>
 
@@ -30,7 +35,8 @@ export default function Home() {
               </div>
               <h3 className={styles.featureTitle}>PACS Orchestration</h3>
               <p className={styles.featureDescription}>
-                Unified control over your PACS ecosystem. Automate study routing and handle complex diagnostic workflows with ease.
+                Unified control over your PACS ecosystem. Automate study routing and handle complex diagnostic workflows
+                with ease.
               </p>
             </div>
 
@@ -40,7 +46,8 @@ export default function Home() {
               </div>
               <h3 className={styles.featureTitle}>HIS Integration</h3>
               <p className={styles.featureDescription}>
-                Full bidirectional communication with Hospital Information Systems. Synchronize patient data and reporting seamlessly.
+                Full bidirectional communication with Hospital Information Systems. Synchronize patient data and
+                reporting seamlessly.
               </p>
             </div>
 
