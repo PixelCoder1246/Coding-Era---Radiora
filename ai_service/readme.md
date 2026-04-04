@@ -55,6 +55,66 @@ This will send a mock payload with `orthancUsername` and `orthancPassword` to se
 
 ---
 
+## 4. API Reference
+
+### Triggering the AI
+**Endpoint:** `POST /analyze`
+
+The backend triggers the AI Service using this payload structure. 
+
+**Request Payload:**
+```json
+{
+  "caseId": "12345",
+  "studyInstanceUID": "1.2.840.113619.2.1.2411.1031152382348",
+  "orthancUrl": "http://localhost:8042",
+  "orthancUsername": "orthanc", 
+  "orthancPassword": "orthanc", 
+  "callbackUrl": "http://localhost:3000/api/cases/12345/ai-result"
+}
+```
+*(Note: `orthancUsername` and `orthancPassword` are optional fields, but `test_trigger.py` injects them so the local server can authorize successfully).*
+
+**Immediate Response (HTTP 202):**
+```json
+{
+  "status": "Accepted",
+  "message": "Analysis started in background"
+}
+```
+
+### The Webhook Callback
+Once the AI finishes processing, it will construct the final detection results and send a `POST` request back to the `callbackUrl` that was provided in the initial trigger.
+
+**Callback Payload Structure:**
+```json
+{
+  "caseId": "12345",
+  "aiStatus": "COMPLETED",
+  "findings": "Hyperintense focal lesion identified in T2 fluid attenuated inversion recovery.",
+  "confidence": 0.96,
+  "annotations": [
+    {
+      "x": 140, "y": 80, "width": 45, "height": 30, "z": 8,
+      "label": "anomaly", "confidence": 0.94, "filename": "IM-0001-0008.dcm", "findings": "Hyperintense focal lesion..."
+    }
+  ],
+  "volumeStats": {
+    "x": 135,
+    "y": 75,
+    "width": 55,
+    "height": 40,
+    "z_min": 6,
+    "z_max": 12,
+    "slice_count": 7,
+    "max_layer_overlap": 5,
+    "confidence": 0.96
+  }
+}
+```
+
+---
+
 ## Technical Features
 
 - **Concurrency Security**: The AI server uses a strict `threading.Lock` to enforce serial ML inference. Even if many scans are uploaded simultaneously, the Heavy CPU/GPU operations queue up cleanly preventing segmentation faults and out-of-memory crashes.
