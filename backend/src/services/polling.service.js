@@ -87,7 +87,12 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const patientTags = studyMeta.PatientMainDicomTags || {};
 
   const studyInstanceUID = mainTags.StudyInstanceUID || null;
-  const accessionNumber = mainTags.AccessionNumber || null;
+  const useFallback = process.env.USE_FALLBACK_ACCESSION === 'true';
+  const accessionNumber =
+    mainTags.AccessionNumber ||
+    (useFallback
+      ? process.env.FALLBACK_ACCESSION_NUMBER || 'ACC-1774522981698-OI2W'
+      : null);
   const modality = mainTags.ModalitiesInStudy || mainTags.Modality || null;
   const studyDate = mainTags.StudyDate || null;
   const bodyPart = mainTags.BodyPartExamined || null;
@@ -98,7 +103,9 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
     return;
   }
   if (!accessionNumber) {
-    console.warn(`[POLL] Skipping ${orthancId}: missing AccessionNumber`);
+    console.warn(
+      `[POLL] Skipping ${orthancId}: missing AccessionNumber and no FALLBACK_ACCESSION_NUMBER set`
+    );
     return;
   }
 
@@ -163,32 +170,44 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
 
   const studyDateParsed = studyDate ? parseStudyDate(studyDate) : null;
 
-  const newCase = await prisma.case.create({
-    data: {
-      adminId,
-      orthancId,
-      studyInstanceUID,
-      accessionNumber,
-      patientId: hisPatientId || patientId || 'UNKNOWN',
-      patientName,
-      patientEmail,
-      patientPhone,
-      modality:
-        typeof modality === 'string'
-          ? modality
-          : Array.isArray(modality)
-            ? modality.join('/')
-            : 'UNKNOWN',
-      bodyPart: bodyPart || null,
-      studyDate: studyDateParsed,
-      status: 'UNASSIGNED',
-      aiStatus: 'NOT_REQUESTED',
-    },
-  });
-
+  // Mark processed FIRST — prevents retry crash if case.create fails mid-flight
   await prisma.processedStudy.create({
     data: { adminId, studyInstanceUID },
   });
+
+  let newCase;
+  try {
+    newCase = await prisma.case.create({
+      data: {
+        adminId,
+        orthancId,
+        studyInstanceUID,
+        accessionNumber,
+        patientId: hisPatientId || patientId || 'UNKNOWN',
+        patientName,
+        patientEmail,
+        patientPhone,
+        modality:
+          typeof modality === 'string'
+            ? modality
+            : Array.isArray(modality)
+              ? modality.join('/')
+              : 'UNKNOWN',
+        bodyPart: bodyPart || null,
+        studyDate: studyDateParsed,
+        status: 'UNASSIGNED',
+        aiStatus: 'NOT_REQUESTED',
+      },
+    });
+  } catch (err) {
+    if (err.code === 'P2002') {
+      console.warn(
+        `[POLL] studyInstanceUID=${studyInstanceUID} already exists as a case. Skipping.`
+      );
+      return;
+    }
+    throw err;
+  }
 
   console.log(
     `[POLL] Case created → UID=${studyInstanceUID}, ACC=${accessionNumber}, Patient=${patientName}, Admin=${adminId}`
@@ -210,7 +229,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   }
 
   if (isAiEnabled()) {
-    triggerAiAnalysis(newCase.id, studyInstanceUID);
+    triggerAiAnalysis(newCase.id, studyInstanceUID, pacsConfig.url);
     console.log(`[POLL] AI analysis triggered for case ${newCase.id}`);
   }
 }
@@ -259,10 +278,24 @@ async function startPolling() {
       `[POLL] Starting polling for admin ${adminId} every ${intervalSeconds}s`
     );
 
-    runPollCycle(pacsConfig, hisConfig);
+    try {
+      runPollCycle(pacsConfig, hisConfig).catch((err) =>
+        console.error(
+          `[POLL] Initial cycle failed for admin ${adminId}:`,
+          err.message
+        )
+      );
+    } catch (err) {
+      console.error(
+        `[POLL] Failed to trigger initial cycle for admin ${adminId}:`,
+        err.message
+      );
+    }
 
     const interval = setInterval(() => {
-      runPollCycle(pacsConfig, hisConfig);
+      runPollCycle(pacsConfig, hisConfig).catch((err) =>
+        console.error(`[POLL] Cycle failed for admin ${adminId}:`, err.message)
+      );
     }, intervalMs);
 
     pollingIntervals.set(adminId, interval);

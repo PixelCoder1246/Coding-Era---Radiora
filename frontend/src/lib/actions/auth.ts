@@ -15,6 +15,8 @@ export async function getAuthStatusAction() {
   const cookieStore = await cookies();
   const token = cookieStore.get('radiora_token')?.value;
 
+  console.log(token);
+
   if (!token) {
     return null;
   }

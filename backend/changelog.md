@@ -4,6 +4,43 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.3] - 2026-03-26
+
+### Added
+- `POST /api/cases/:caseId/resend-notification` — endpoint for doctors to resend report notifications to patients.
+- `PATCH /api/cases/:caseId/status` — endpoint for doctors to mark cases as `IN_REVIEW` (completes the medical workflow).
+
+### Fixed
+- **Email Portal URLs**: Patient notification emails now correctly point to the **frontend** portal UI (`/portal/report/:token`) instead of the backend API.
+- **Polling Hardening**: Added top-level safety wrappers to the polling service to prevent unhandled promise rejections from crashing the entire server if a PACS cycle fails.
+- **WhatsApp Logs**: Removed temporary `[WHATSAPP]` console logs to keep terminal output clean until a real SMS provider is integrated.
+
+---
+
+## [0.3.2] - 2026-03-26
+
+### Changed
+- `GET /api/portal/report/:token` — response now returns `orthancBaseUrl`, `orthancId`, and `studyInstanceUID` instead of a pre-built `pacsViewerUrl`. Frontend constructs the viewer URL it needs from these three raw values (Orthanc explorer, OHIF, DICOMweb, etc.)
+- AI trigger payload now includes `orthancUrl` — AI server no longer needs to know Orthanc config separately; the correct admin's PACS URL is forwarded with every analysis request
+
+### Added
+- `docs/api.md` (root) — fully rewritten API reference: all endpoints, roles, auth, multi-tenancy, workflows (polling, AI callback, notifications), case lifecycle, portal viewer data, and env vars
+- `docs/workflow.md` (root) — fully rewritten step-by-step system workflow with updated mermaid flowchart
+
+---
+
+## [0.3.1] - 2026-03-26
+
+### Fixed
+- Polling crash loop: `processedStudy` is now created **before** `case.create` — prevents a retry-crash cycle when the server restarts mid-poll and the case already exists in DB but the processed marker doesn't
+- Added `P2002` catch on `case.create` — duplicate `studyInstanceUID` now logs a warning and skips gracefully instead of throwing an unhandled error
+
+### Added
+- `USE_FALLBACK_ACCESSION` env flag — controls whether DICOMs missing an `AccessionNumber` use the fallback value (`true`) or are skipped entirely (`false`, default for production)
+- `FALLBACK_ACCESSION_NUMBER` env var — the accession number used when `USE_FALLBACK_ACCESSION=true` and the DICOM has no embedded accession number
+
+---
+
 ## [0.3.0] - 2026-03-23
 
 ### Added

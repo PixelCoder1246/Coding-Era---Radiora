@@ -29,6 +29,14 @@ async function login(req, res) {
     }
 
     const result = await authService.login({ email, password });
+
+    res.cookie('radiora_token', result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
     return res.status(200).json(result);
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
