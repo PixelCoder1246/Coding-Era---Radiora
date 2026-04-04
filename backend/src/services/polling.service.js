@@ -104,6 +104,30 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
     return;
   }
 
+  // --- STABILITY CHECK (Quiet Period) ---
+  // Ensure the study hasn't been updated in the last 15 seconds to avoid partial processing.
+  const lastUpdateStr = studyMeta.LastUpdate; // e.g. "20260403T091357"
+  if (lastUpdateStr) {
+    const year = parseInt(lastUpdateStr.slice(0, 4));
+    const month = parseInt(lastUpdateStr.slice(4, 6)) - 1;
+    const day = parseInt(lastUpdateStr.slice(6, 8));
+    const hour = parseInt(lastUpdateStr.slice(9, 11));
+    const min = parseInt(lastUpdateStr.slice(11, 13));
+    const sec = parseInt(lastUpdateStr.slice(13, 15));
+    const lastUpdateDate = new Date(Date.UTC(year, month, day, hour, min, sec));
+    const now = new Date();
+    const secondsSinceUpdate =
+      (now.getTime() - lastUpdateDate.getTime()) / 1000;
+
+    if (secondsSinceUpdate < 15) {
+      console.log(
+        `[POLL] Study ${orthancId} is still unstable (updated ${Math.round(secondsSinceUpdate)}s ago). Waiting.`
+      );
+      return;
+    }
+  }
+  // --------------------------------------
+
   const already = await prisma.processedStudy.findUnique({
     where: { adminId_studyInstanceUID: { adminId, studyInstanceUID } },
   });

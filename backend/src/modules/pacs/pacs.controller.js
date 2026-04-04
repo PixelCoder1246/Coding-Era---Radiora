@@ -12,7 +12,13 @@ async function uploadDicom(req, res) {
       req.user.adminId,
       accessionNumber
     );
-    return res.status(200).json({ message: 'File uploaded to PACS.', result });
+
+    const message =
+      result.type === 'archive'
+        ? `Successfully processed archive and uploaded ${result.totalSlices} slices.`
+        : 'File uploaded to PACS.';
+
+    return res.status(200).json({ message, result });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
   }

@@ -2,7 +2,12 @@ const axios = require('axios');
 const FormData = require('form-data');
 const fs = require('fs');
 const prisma = require('../../config/db');
-const { modifyDicomAccession } = require('../../utils/dicom.utils');
+const path = require('path');
+const AdmZip = require('adm-zip');
+const {
+  modifyDicomAccession,
+  isDicomFile,
+} = require('../../utils/dicom.utils');
 
 async function uploadDicom(file, adminId, accessionNumber) {
   const config = await prisma.integration.findUnique({
@@ -15,6 +20,18 @@ async function uploadDicom(file, adminId, accessionNumber) {
     throw err;
   }
 
+  const isArchive =
+    file.mimetype === 'application/zip' ||
+    file.originalname.toLowerCase().endsWith('.zip');
+
+  if (isArchive) {
+    return await processArchiveAndUpload(file, config, accessionNumber);
+  } else {
+    return await processSingleFileAndUpload(file, config, accessionNumber);
+  }
+}
+
+async function processSingleFileAndUpload(file, config, accessionNumber) {
   let uploadPath = file.path;
   const modifiedPath = file.path + '.mod';
 
@@ -23,16 +40,74 @@ async function uploadDicom(file, adminId, accessionNumber) {
       await modifyDicomAccession(file.path, modifiedPath, accessionNumber);
       uploadPath = modifiedPath;
     } catch (err) {
-      console.error('[PACS_SERVICE] Failed to modify DICOM:', err);
-      // Fallback: upload original if modification fails, or throw error?
-      // For now, let's proceed with original but log the error
+      console.warn('[PACS_SERVICE] Failed to modify single DICOM:', err);
     }
   }
 
+  const result = await postToOrthanc(uploadPath, file.originalname, config);
+
+  // Cleanup
+  fs.unlink(file.path, () => {});
+  if (fs.existsSync(modifiedPath)) fs.unlink(modifiedPath, () => {});
+
+  return { type: 'single', result };
+}
+
+async function processArchiveAndUpload(zipFile, config, accessionNumber) {
+  const zip = new AdmZip(zipFile.path);
+  const tempDir = path.join('uploads', `tmp_${Date.now()}`);
+  fs.mkdirSync(tempDir, { recursive: true });
+
+  try {
+    zip.extractAllTo(tempDir, true);
+
+    const files = [];
+    const getAllFiles = (dirPath) => {
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        if (entry.isDirectory()) {
+          getAllFiles(fullPath);
+        } else {
+          files.push(fullPath);
+        }
+      }
+    };
+
+    getAllFiles(tempDir);
+
+    let uploadCount = 0;
+    for (const filePath of files) {
+      if (isDicomFile(filePath)) {
+        if (accessionNumber) {
+          try {
+            await modifyDicomAccession(filePath, filePath, accessionNumber);
+          } catch (err) {
+            console.warn(
+              `[PACS_SERVICE] Failed to modify ZIP slice ${filePath}:`,
+              err
+            );
+          }
+        }
+
+        await postToOrthanc(filePath, path.basename(filePath), config);
+        uploadCount++;
+      }
+    }
+
+    return { type: 'archive', totalSlices: uploadCount };
+  } finally {
+    // Thorough cleanup
+    fs.unlink(zipFile.path, () => {});
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function postToOrthanc(filePath, originalName, config) {
   const form = new FormData();
-  form.append('file', fs.createReadStream(uploadPath), {
-    filename: file.originalname,
-    contentType: file.mimetype || 'application/octet-stream',
+  form.append('file', fs.createReadStream(filePath), {
+    filename: originalName,
+    contentType: 'application/octet-stream',
   });
 
   const authOpts =
@@ -43,15 +118,10 @@ async function uploadDicom(file, adminId, accessionNumber) {
   const response = await axios.post(`${config.url}/instances`, form, {
     ...authOpts,
     headers: form.getHeaders(),
-    timeout: 30000,
+    timeout: 60000,
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
   });
-
-  fs.unlink(file.path, () => {});
-  if (fs.existsSync(modifiedPath)) {
-    fs.unlink(modifiedPath, () => {});
-  }
 
   return response.data;
 }
