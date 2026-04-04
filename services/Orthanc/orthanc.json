@@ -1,20 +1,28 @@
 {
-  "Name": "Radiora Orthanc PACS",
+  "Name": "Radiora PACS",
+
   "StorageDirectory": "/var/lib/orthanc/db",
   "IndexDirectory": "/var/lib/orthanc/db",
   "StorageCompression": true,
   "MaximumStorageSize": 0,
   "MaximumPatientCount": 0,
-  "LuaScripts": [],
-  "Plugins": [
-    "/usr/share/orthanc/plugins",
-    "/usr/local/share/orthanc/plugins"
-  ],
-  "ConcurrentJobs": 2,
+
   "HttpServerEnabled": true,
   "HttpPort": 8042,
   "HttpDescribeErrors": true,
   "HttpCompressionEnabled": true,
+  "RemoteAccessAllowed": true,
+  "AuthenticationEnabled": false,
+  "RegisteredUsers": {},
+
+  "HttpExtraHeaders": {
+    "Access-Control-Allow-Origin": "*",
+    "Cross-Origin-Embedder-Policy": "require-corp",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "X-Frame-Options": "ALLOWALL",
+    "Content-Security-Policy": "frame-ancestors *"
+  },
+
   "DicomServerEnabled": true,
   "DicomAet": "RADIORA_PACS",
   "DicomPort": 4242,
@@ -27,9 +35,33 @@
   "DicomAlwaysAllowGet": true,
   "DicomAlwaysAllowMove": true,
   "DicomCheckTranscoding": true,
-  "RemoteAccessAllowed": true,
-  "AuthenticationEnabled": false,
-  "RegisteredUsers": {},
   "DicomScuTimeout": 10,
-  "HttpTimeout": 30
+  "HttpTimeout": 30,
+
+  "ConcurrentJobs": 2,
+  "LuaScripts": [],
+
+  "Plugins": [
+    "/usr/share/orthanc/plugins",
+    "/usr/local/share/orthanc/plugins/"
+  ],
+
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado",
+    "Ssl": false,
+    "AllowInactiveTransactions": true,
+    "StudiesMetadata": "Full",
+    "SeriesMetadata": "Full"
+  },
+
+  "OrthancExplorer2": {
+    "Enable": true,
+    "IsDefaultOrthancUI": false,
+    "Ohif": {
+      "DataSource": "dicom-web"
+    }
+  }
 }
