@@ -3,9 +3,9 @@ const FormData = require('form-data');
 const fs = require('fs');
 const prisma = require('../../config/db');
 
-async function uploadDicom(file) {
+async function uploadDicom(file, adminId) {
   const config = await prisma.integration.findUnique({
-    where: { type: 'PACS' },
+    where: { adminId_type: { adminId, type: 'PACS' } },
   });
 
   if (!config || !config.active) {

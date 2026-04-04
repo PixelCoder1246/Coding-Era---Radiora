@@ -33,18 +33,22 @@ enum AiStatus {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  passwordHash  String
-  role          Role     @default(DOCTOR)
-  createdAt     DateTime @default(now())
-  assignedCases Case[]
+  id                  String   @id @default(cuid())
+  name                String
+  email               String   @unique
+  passwordHash        String
+  role                Role     @default(DOCTOR)
+  maxConcurrentCases  Int      @default(5)
+  createdByAdminId    String?
+  createdAt           DateTime @default(now())
+  assignedCases       Case[]
+  reports             Report[]
 }
 
 model Integration {
   id                  String          @id @default(cuid())
-  type                IntegrationType @unique
+  adminId             String
+  type                IntegrationType
   url                 String
   username            String?
   password            String?
@@ -53,15 +57,20 @@ model Integration {
   active              Boolean         @default(false)
   activatedAt         DateTime?
   updatedAt           DateTime        @updatedAt
+
+  @@unique([adminId, type])
 }
 
 model Case {
   id               String     @id @default(cuid())
+  adminId          String
   orthancId        String
   studyInstanceUID String     @unique
   accessionNumber  String
   patientId        String
   patientName      String
+  patientEmail     String?
+  patientPhone     String?
   modality         String
   bodyPart         String?
   studyDate        DateTime?
@@ -69,12 +78,41 @@ model Case {
   assignedDoctorId String?
   assignedDoctor   User?      @relation(fields: [assignedDoctorId], references: [id])
   aiStatus         AiStatus   @default(NOT_REQUESTED)
+  aiResult         AiResult?
+  report           Report?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 }
 
 model ProcessedStudy {
   id               String   @id @default(cuid())
-  studyInstanceUID String   @unique
+  adminId          String
+  studyInstanceUID String
   processedAt      DateTime @default(now())
+
+  @@unique([adminId, studyInstanceUID])
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  caseId      String   @unique
+  doctorId    String
+  reportText  String
+  impression  String?
+  accessToken String   @unique
+  submittedAt DateTime @default(now())
+
+  case   Case @relation(fields: [caseId], references: [id])
+  doctor User @relation(fields: [doctorId], references: [id])
+}
+
+model AiResult {
+  id          String   @id @default(cuid())
+  caseId      String   @unique
+  findings    String
+  confidence  Float
+  annotations Json
+  analyzedAt  DateTime @default(now())
+
+  case Case @relation(fields: [caseId], references: [id])
 }
