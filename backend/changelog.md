@@ -4,7 +4,43 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.0] - 2026-03-23
+
+### Added
+- `POST /api/admin/doctors` — ADMIN creates doctors with auto-generated password and configurable `maxConcurrentCases`
+- `GET /api/admin/doctors` — ADMIN lists their own doctors only
+- Auto-assignment service: newly created cases are automatically assigned to the least-loaded eligible doctor
+- `patientEmail` and `patientPhone` fields on `Case` — extracted from HIS patient record during polling
+- `POST /api/his/patients` now accepts `email` and `phone`, forwarded to HIS and stored
+- `Report` model: doctor submits report via `POST /api/cases/:caseId/report` (DOCTOR only)
+- `AiResult` model: AI service posts results to `POST /api/cases/:caseId/ai-result` (public callback)
+- `GET /api/portal/report/:token` — public patient portal returns report by access token
+- `GET /api/auth/status` — returns current user identity + `adminId` from JWT (for frontend auth checks)
+- SendGrid email notification sent to patient when report is submitted
+- WhatsApp notification simulated via `console.log` when `patientPhone` is present
+- `src/utils/ai.js` — non-blocking AI trigger with `callbackUrl` support
+- `src/utils/email.js` — SendGrid email utility
+- `src/services/assignment.service.js` — auto-assignment logic
+- `@sendgrid/mail` dependency
+- **Multi-tenancy**: each admin is a fully isolated organization
+  - `adminId` added to `Integration`, `Case`, `ProcessedStudy` — all data scoped per admin
+  - `createdByAdminId` added to `User` — doctors bound to the admin who created them
+  - `Integration` unique constraint changed from `type` to `[adminId, type]` — each admin has their own PACS + HIS config
+  - `ProcessedStudy` unique constraint changed to `[adminId, studyInstanceUID]` — dedup is per admin
+  - `adminId` embedded in JWT payload — `ADMIN` token has `adminId = userId`; `DOCTOR` token has `adminId = createdByAdminId`
+  - Polling spawns one interval per active admin — fully isolated cycles
+  - `POST /api/his/patients`, `POST /api/his/orders`, `POST /api/pacs/upload` now require authentication
+
+### Changed
+- `getCaseById` now includes `aiResult` and `report` in response
+- Polling service extracts `patientEmail` and `patientPhone` from HIS and auto-assigns doctor after case creation
+- All integration, case, and doctor queries scoped by `adminId` — complete org isolation
+- `integration.service.js` upserts by `[adminId, type]` instead of `type` alone
+
+---
+
 ## [0.2.0] - 2026-03-20
+
 
 ### Added
 - HIS proxy module: `POST /api/his/patients` and `POST /api/his/orders` (**public** — no auth required)

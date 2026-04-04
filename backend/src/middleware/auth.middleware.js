@@ -2,12 +2,15 @@ const { verifyToken } = require('../utils/jwt');
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
+  const token =
+    (req.cookies && req.cookies.radiora_token) ||
+    (authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.split(' ')[1]
+      : null);
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized. No token provided.' });
   }
-
-  const token = authHeader.split(' ')[1];
 
   try {
     const decoded = verifyToken(token);

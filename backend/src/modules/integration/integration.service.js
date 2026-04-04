@@ -1,14 +1,12 @@
 const axios = require('axios');
 const prisma = require('../../config/db');
 
-async function savePacsConfig({
-  url,
-  username,
-  password,
-  pollIntervalSeconds,
-}) {
+async function savePacsConfig(
+  adminId,
+  { url, username, password, pollIntervalSeconds }
+) {
   const integration = await prisma.integration.upsert({
-    where: { type: 'PACS' },
+    where: { adminId_type: { adminId, type: 'PACS' } },
     update: {
       url,
       username,
@@ -18,6 +16,7 @@ async function savePacsConfig({
       activatedAt: null,
     },
     create: {
+      adminId,
       type: 'PACS',
       url,
       username,
@@ -28,23 +27,23 @@ async function savePacsConfig({
   return integration;
 }
 
-async function saveHisConfig({ url, apiKey }) {
+async function saveHisConfig(adminId, { url, apiKey }) {
   const integration = await prisma.integration.upsert({
-    where: { type: 'HIS' },
+    where: { adminId_type: { adminId, type: 'HIS' } },
     update: { url, apiKey, active: false, activatedAt: null },
-    create: { type: 'HIS', url, apiKey },
+    create: { adminId, type: 'HIS', url, apiKey },
   });
   return integration;
 }
 
-async function getStatus() {
+async function getStatus(adminId) {
   const [pacs, his] = await Promise.all([
     prisma.integration.findUnique({
-      where: { type: 'PACS' },
+      where: { adminId_type: { adminId, type: 'PACS' } },
       select: { active: true, url: true, activatedAt: true },
     }),
     prisma.integration.findUnique({
-      where: { type: 'HIS' },
+      where: { adminId_type: { adminId, type: 'HIS' } },
       select: { active: true, url: true, activatedAt: true },
     }),
   ]);
@@ -59,9 +58,9 @@ async function getStatus() {
   };
 }
 
-async function activatePacs() {
+async function activatePacs(adminId) {
   const config = await prisma.integration.findUnique({
-    where: { type: 'PACS' },
+    where: { adminId_type: { adminId, type: 'PACS' } },
   });
 
   if (!config) {
@@ -89,7 +88,7 @@ async function activatePacs() {
   }
 
   const updated = await prisma.integration.update({
-    where: { type: 'PACS' },
+    where: { adminId_type: { adminId, type: 'PACS' } },
     data: { active: true, activatedAt: new Date() },
     select: { active: true, activatedAt: true, url: true },
   });
@@ -97,9 +96,9 @@ async function activatePacs() {
   return updated;
 }
 
-async function activateHis() {
+async function activateHis(adminId) {
   const config = await prisma.integration.findUnique({
-    where: { type: 'HIS' },
+    where: { adminId_type: { adminId, type: 'HIS' } },
   });
 
   if (!config) {
@@ -112,12 +111,8 @@ async function activateHis() {
 
   try {
     const headers = config.apiKey ? { 'x-api-key': config.apiKey } : {};
-
     await axios
-      .get(`${config.url}/health`, {
-        headers,
-        timeout: 5000,
-      })
+      .get(`${config.url}/health`, { headers, timeout: 5000 })
       .catch(() =>
         axios.get(`${config.url}/patients`, { headers, timeout: 5000 })
       );
@@ -130,7 +125,7 @@ async function activateHis() {
   }
 
   const updated = await prisma.integration.update({
-    where: { type: 'HIS' },
+    where: { adminId_type: { adminId, type: 'HIS' } },
     data: { active: true, activatedAt: new Date() },
     select: { active: true, activatedAt: true, url: true },
   });

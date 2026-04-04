@@ -2,17 +2,21 @@ const hisService = require('./his.service');
 
 async function createPatient(req, res) {
   try {
-    const { patientId, name, dob, gender } = req.body;
+    const { patientId, name, dob, gender, email, phone } = req.body;
+    const adminId = req.user.adminId;
 
     if (!name) {
       return res.status(400).json({ error: 'name is required.' });
     }
 
     const patient = await hisService.createPatient({
+      adminId,
       patientId,
       name,
       dob,
       gender,
+      email,
+      phone,
     });
     return res.status(201).json(patient);
   } catch (err) {
@@ -23,12 +27,14 @@ async function createPatient(req, res) {
 async function createOrder(req, res) {
   try {
     const { accessionNumber, patientId, modality, bodyPart } = req.body;
+    const adminId = req.user.adminId;
 
     if (!patientId) {
       return res.status(400).json({ error: 'patientId is required.' });
     }
 
     const order = await hisService.createOrder({
+      adminId,
       accessionNumber,
       patientId,
       modality,
