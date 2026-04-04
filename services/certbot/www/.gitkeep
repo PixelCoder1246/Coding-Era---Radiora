@@ -1,0 +1,3 @@
+# This directory is the webroot used by certbot for ACME HTTP-01 challenges.
+# Nginx serves /.well-known/acme-challenge/ from here.
+# The .gitkeep keeps this directory tracked in git.
