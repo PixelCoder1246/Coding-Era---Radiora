@@ -33,10 +33,25 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - HIS order matching by `accessionNumber`
 - Automatic `Case` creation on successful match
 - Deduplication via `ProcessedStudy` — each study processed exactly once
-- Activation timestamp filter — only post-activation studies are processed
 - PACS viewer URL construction per case
 - Case management endpoints (list, get, assign doctor)
 - Polling auto-starts on server boot if PACS is active
+
+## Features (Phase 3)
+
+- Admin doctor creation via `POST /api/admin/doctors` — auto-generates password + configurable capacity
+- Admin doctor list via `GET /api/admin/doctors` — returns only this admin's doctors
+- Auto-assignment: cases assigned to least-loaded eligible doctor on creation
+- Patient contact storage: `patientEmail` and `patientPhone` pulled from HIS and stored on `Case`
+- Doctor report submission: `POST /api/cases/:caseId/report`
+- Report access token: unique token generated per report
+- Patient email notification via SendGrid on report submission
+- WhatsApp notification simulated via log
+- AI trigger: non-blocking `POST {AI_BASE_URL}/analyze` with `callbackUrl`
+- AI callback: `POST /api/cases/:caseId/ai-result` stores findings, confidence, and bounding box annotations
+- Patient portal: `GET /api/portal/report/:token` — public, no auth required
+- Auth status: `GET /api/auth/status` — returns current user identity + `adminId` for frontend auth checks
+- **Multi-tenancy**: each admin is a fully isolated organization; data scoped by `adminId` across `Integration`, `Case`, `ProcessedStudy`; doctors bound to their admin via `createdByAdminId`; polling spawns one interval per admin; `adminId` embedded in JWT payload
 
 ---
 
@@ -54,9 +69,12 @@ backend/
     modules/
       auth/             ← Register, login, JWT issuance
       integration/      ← PACS + HIS config and activation
-      cases/            ← Case listing, detail, and assignment
+      cases/            ← Case listing, detail, assignment, AI callback
       his/              ← HIS proxy (create patient, create order)
       pacs/             ← PACS upload (stream DICOM to Orthanc)
+      admin/            ← Admin: doctor creation
+      report/           ← Doctor report submission
+      portal/           ← Public patient portal (token-based report access)
 
     middleware/
       auth.middleware.js ← Bearer token verification + requireRole guard
@@ -90,6 +108,15 @@ PORT=3000
 DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/radiora
 JWT_SECRET=your_secret_here
 JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:3001
+BACKEND_URL=http://localhost:3000
+
+# SendGrid (Phase 3 — email notifications)
+SENDGRID_API_KEY=your_sendgrid_api_key
+EMAIL_FROM=noreply@radiora.app
+
+# AI Service (Phase 3 — optional)
+AI_BASE_URL=
 ```
 
 ### 3. Run database migration
@@ -154,6 +181,25 @@ Server starts at `http://localhost:3000`.
 |---|---|---|
 | `POST` | `/api/pacs/upload` | Public |
 
+### Admin (Phase 3)
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/admin/doctors` | Admin |
+
+### Cases — Phase 3 additions
+
+| Method | Route | Access |
+|---|---|---|
+| `POST` | `/api/cases/:caseId/report` | Doctor |
+| `POST` | `/api/cases/:caseId/ai-result` | Public (AI callback) |
+
+### Patient Portal (Phase 3)
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/portal/report/:token` | Public |
+
 ---
 
 ## Notes
@@ -167,4 +213,4 @@ Server starts at `http://localhost:3000`.
 
 ## Version
 
-**Current Version: 0.2.0**
+**Current Version: 0.3.0**

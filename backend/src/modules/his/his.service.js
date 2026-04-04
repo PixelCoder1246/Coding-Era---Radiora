@@ -1,9 +1,9 @@
 const axios = require('axios');
 const prisma = require('../../config/db');
 
-async function getHisConfig() {
+async function getHisConfig(adminId) {
   const config = await prisma.integration.findUnique({
-    where: { type: 'HIS' },
+    where: { adminId_type: { adminId, type: 'HIS' } },
   });
   if (!config || !config.active) {
     const err = new Error('HIS not active. Activate HIS integration first.');
@@ -13,8 +13,16 @@ async function getHisConfig() {
   return config;
 }
 
-async function createPatient({ patientId, name, dob, gender }) {
-  const config = await getHisConfig();
+async function createPatient({
+  adminId,
+  patientId,
+  name,
+  dob,
+  gender,
+  email,
+  phone,
+}) {
+  const config = await getHisConfig(adminId);
   const headers = config.apiKey ? { 'x-api-key': config.apiKey } : {};
 
   const resolvedPatientId =
@@ -23,15 +31,21 @@ async function createPatient({ patientId, name, dob, gender }) {
 
   const response = await axios.post(
     `${config.url}/patients`,
-    { patientId: resolvedPatientId, name, dob, gender },
+    { patientId: resolvedPatientId, name, dob, gender, email, phone },
     { headers, timeout: 8000 }
   );
 
   return response.data;
 }
 
-async function createOrder({ accessionNumber, patientId, modality, bodyPart }) {
-  const config = await getHisConfig();
+async function createOrder({
+  adminId,
+  accessionNumber,
+  patientId,
+  modality,
+  bodyPart,
+}) {
+  const config = await getHisConfig(adminId);
   const headers = config.apiKey ? { 'x-api-key': config.apiKey } : {};
 
   const resolvedAccessionNumber =

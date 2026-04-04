@@ -1,33 +1,44 @@
-name: Lint Backend
+name: Lint
 
 on:
   push:
-    branches: [ "main", "backend-development" ]
+    branches: [ "main", "backend-development", "frontend-development" ]
   pull_request:
-    branches: [ "main", "backend-development" ]
+    branches: [ "main", "backend-development", "frontend-development" ]
 
 jobs:
-  lint:
+  lint-backend:
+    name: Lint Backend
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [20.x]
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: backend
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
-
-    - name: Install dependencies
-      run: npm install
-      working-directory: backend
-
-    - name: Run ESLint
-      run: npm run lint
-      working-directory: backend
+  lint-frontend:
+    name: Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm install
+        working-directory: frontend
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: frontend
