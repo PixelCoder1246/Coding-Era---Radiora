@@ -1,0 +1,12 @@
+﻿Commit: 94298ae
+Author: Adrian
+Date: Wed Mar 25 12:20:00 2026 +0530
+
+Message:
+fix(v0.3.1): polling crash recovery and accession fallback flag
+
+- Move processedStudy.create before case.create to prevent retry-crash loop on server restart mid-poll
+- Add P2002 catch on case.create ΓÇö duplicate studyInstanceUID logs warning and skips instead of crashing poll cycle
+- Add USE_FALLBACK_ACCESSION env flag (default false for production)
+- Add FALLBACK_ACCESSION_NUMBER env var for testing without embedded accession numbers
+

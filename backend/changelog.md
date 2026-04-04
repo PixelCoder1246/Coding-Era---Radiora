@@ -4,6 +4,18 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.1] - 2026-03-26
+
+### Fixed
+- Polling crash loop: `processedStudy` is now created **before** `case.create` — prevents a retry-crash cycle when the server restarts mid-poll and the case already exists in DB but the processed marker doesn't
+- Added `P2002` catch on `case.create` — duplicate `studyInstanceUID` now logs a warning and skips gracefully instead of throwing an unhandled error
+
+### Added
+- `USE_FALLBACK_ACCESSION` env flag — controls whether DICOMs missing an `AccessionNumber` use the fallback value (`true`) or are skipped entirely (`false`, default for production)
+- `FALLBACK_ACCESSION_NUMBER` env var — the accession number used when `USE_FALLBACK_ACCESSION=true` and the DICOM has no embedded accession number
+
+---
+
 ## [0.3.0] - 2026-03-23
 
 ### Added
