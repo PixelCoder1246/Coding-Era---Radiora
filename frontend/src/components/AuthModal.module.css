@@ -39,9 +39,12 @@
 }
 
 .message {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 500;
   color: var(--foreground);
+  white-space: pre-line;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* Success Animation (Tick) */

@@ -5,6 +5,7 @@ Radiora is a professional-grade medical imaging middleware designed to bridge th
 ## Version 0.3.7
 
 ### Key Features
+
 - **PACS Integration**: Real-time polling of Orthanc instances with automated metadata extraction.
 - **HIS Connectivity**: Seamless linkage with Hospital Information Systems via Accession Number reconciliation.
 - **AI-First Workflow**: Automated, non-blocking AI analysis triggers with dedicated callback handlers.
@@ -14,6 +15,7 @@ Radiora is a professional-grade medical imaging middleware designed to bridge th
 ---
 
 ## 🛠 Tech Stack
+
 - **Backend**: Node.js, Express, Prisma 5, PostgreSQL
 - **PACS**: Orthanc (DICOM Server)
 - **AI**: Non-blocking asynchronous integration
@@ -36,6 +38,7 @@ BACKEND_URL="http://your-backend-ip.nip.io"
 ---
 
 ## 📘 Documentation
+
 - [API Reference](file:///z:/Work%20Files/Projects/radiora/Radiora/docs/api.md)
 - [System Architecture](file:///z:/Work%20Files/Projects/radiora/Radiora/docs/architecture.md)
 - [Deployment Guide](file:///z:/Work%20Files/Projects/radiora/Radiora/services/docker-compose.yml)
@@ -43,6 +46,7 @@ BACKEND_URL="http://your-backend-ip.nip.io"
 ---
 
 ## 📝 Recent Changes (v0.3.7)
+
 - **Deep Metadata Extraction**: Optimized polling to fetch body part tags from individual DICOM series when study-level tags are sparse.
 - **HIS Metadata Fallback**: Automatic use of HIS order details if DICOM files are missing critical metadata.
 - **Normalization**: Standardized modality and body part naming across the system.

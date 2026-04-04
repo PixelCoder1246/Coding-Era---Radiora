@@ -7,7 +7,7 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 export default [
   {
     // Global ignores must be in their own object at the top level
-    ignores: ['node_modules', '.next', 'dist', 'out', 'coverage', 'next-env.d.ts'],
+    ignores: ['node_modules', '.next', 'dist', 'out', 'coverage'],
   },
   js.configs.recommended,
   prettierPlugin,

@@ -13,7 +13,6 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Role>('USER');
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<{ isOpen: boolean; type: 'success' | 'error'; message: string }>({
     isOpen: false,
@@ -26,9 +25,8 @@ export default function RegisterPage() {
     setLoading(true);
     setModal(prev => ({ ...prev, isOpen: false }));
 
-    const givenRole = role === 'USER' ? 'DOCTOR' : 'ADMIN';
-    const payload = { name, email, password, role: givenRole };
-    console.log(`Submitting ${role} (${givenRole}) Register Payload:`, payload);
+    const payload = { name, email, password, role: 'ADMIN' };
+    console.log(`Submitting Admin Register Payload:`, payload);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -40,7 +38,8 @@ export default function RegisterPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Registration failed. Please try again.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Registration failed. Please try again.');
       }
 
       setModal({
@@ -50,7 +49,7 @@ export default function RegisterPage() {
       });
 
       setTimeout(() => {
-        router.push('/');
+        router.push('/auth/login');
         router.refresh();
       }, 2000);
     } catch (err: unknown) {
@@ -70,25 +69,8 @@ export default function RegisterPage() {
     <div className={styles.container}>
       <div className={styles.authCard}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Create Account</h1>
-          <p className={styles.subtitle}>Join the Radiora workspace</p>
-
-          <div className={styles.roleSelector}>
-            <button
-              type="button"
-              className={`${styles.roleBtn} ${role === 'USER' ? styles.roleBtnActive : ''}`}
-              onClick={() => setRole('USER')}
-            >
-              User
-            </button>
-            <button
-              type="button"
-              className={`${styles.roleBtn} ${role === 'ADMIN' ? styles.roleBtnActive : ''}`}
-              onClick={() => setRole('ADMIN')}
-            >
-              Admin
-            </button>
-          </div>
+          <h1 className={styles.title}>Admin Registration</h1>
+          <p className={styles.subtitle}>Create your administrator account for Radiora</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>

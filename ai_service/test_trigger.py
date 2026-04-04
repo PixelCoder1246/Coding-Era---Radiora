@@ -2,7 +2,6 @@ import requests
 import json
 import uuid
 
-# Configuration
 AI_SERVER_URL = "http://localhost:8000/analyze"
 ORTHANC_URL = "http://localhost:8042" # Change if your Orthanc instance is on a different port
 CALLBACK_URL = "http://localhost:3000/api/ai/callback" # Where the AI server will send the results

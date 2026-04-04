@@ -11,7 +11,6 @@ from inference import scan_mri
 
 app = FastAPI(title="Radiora AI Server")
 
-# Serializes ML inference to avoid PyTorch/CPU segmentation faults from concurrency
 inference_lock = threading.Lock()
 
 class AnalyzeRequest(BaseModel):
@@ -35,7 +34,6 @@ def process_analysis(req: AnalyzeRequest):
             if req.orthancUsername and req.orthancPassword:
                 auth_opts['auth'] = (req.orthancUsername, req.orthancPassword)
 
-            # 1. Look up Orthanc internal ID from StudyInstanceUID
             find_url = f"{req.orthancUrl}/tools/find"
             payload = {
                 "Level": "Study",
@@ -46,14 +44,12 @@ def process_analysis(req: AnalyzeRequest):
             
             orthanc_study_ids = res.json()
             if not orthanc_study_ids:
-                # Fallback if the user actually passed the Orthanc ID in studyInstanceUID field
                 orthanc_study_id = req.studyInstanceUID
             else:
                 orthanc_study_id = orthanc_study_ids[0]
 
             print(f"Found orthanc study ID: {orthanc_study_id}")
 
-            # 2. Download the study archive (ZIP)
             archive_url = f"{req.orthancUrl}/studies/{orthanc_study_id}/archive"
             print(f"Downloading ZIP from {archive_url}")
             
@@ -65,23 +61,20 @@ def process_analysis(req: AnalyzeRequest):
                 for chunk in zip_res.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-            # 3. Extract the ZIP and flatten DICOM files into dcm_dir
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(temp_dir)
                 
             for root, dirs, files in os.walk(temp_dir):
-                # Skip the specific dcm_dir during walking so we don't move files over themselves
                 if root == dcm_dir:
                     continue
                 for file in files:
                     if file.lower().endswith(('.dcm', '.dicom')):
-                        # Move all dicom files to the flat dcm_dir expected by test.py
                         source = os.path.join(root, file)
                         destination = os.path.join(dcm_dir, file)
                         os.rename(source, destination)
         except Exception as e:
             print(f"[MOCKING] Orthanc unreachable or error ({e}). Using local mock files...")
-            local_mock_dir = "c:/code/ai/dcm"
+            local_mock_dir = "./dataset"
             if os.path.exists(local_mock_dir):
                 for file in os.listdir(local_mock_dir):
                     if file.lower().endswith(('.dcm', '.dicom')):
@@ -95,7 +88,6 @@ def process_analysis(req: AnalyzeRequest):
         if num_files == 0:
             raise ValueError("No DICOM files found in the study archive.")
 
-        # 4. Run ML inference on the directory
         MODEL_ID = "google/medgemma-1.5-4b-it" 
         
         print("Waiting for ML inference lock (preventing concurrent crashes)...")
@@ -104,14 +96,12 @@ def process_analysis(req: AnalyzeRequest):
         
         print("Inference completed successfully. Compiling payload.")
 
-        # 5. POST results back to the backend
         findings_list = result_data.get("findings", [])
         findings_str = "; ".join(findings_list) if findings_list else "No significant findings."
         
         detections = result_data.get("detections", [])
         volume_stats = result_data.get("volume_stats")
         
-        # Use the core tumor confidence if a heatmap volume was confirmed
         if volume_stats and "confidence" in volume_stats:
             overall_confidence = volume_stats["confidence"]
         else:
@@ -140,7 +130,6 @@ def process_analysis(req: AnalyzeRequest):
 
     except Exception as e:
         print(f"Error during async AI processing: {e}")
-        # Try to notify backend of failure if possible
         try:
             failure_payload = {
                 "caseId": req.caseId, 
@@ -151,7 +140,6 @@ def process_analysis(req: AnalyzeRequest):
         except Exception as inner_e:
             print(f"Failed to send failure POST back to backend: {inner_e}")
     finally:
-        # Clean up temporary directory
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 @app.post("/analyze", status_code=202)

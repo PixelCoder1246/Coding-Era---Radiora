@@ -156,3 +156,59 @@ export async function activatePacsAction() {
     return { error: error instanceof Error ? error.message : 'Failed to activate PACS' };
   }
 }
+
+export async function getHisConfigAction() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('radiora_token')?.value;
+
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${API_URL}/api/integrations/his`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error('Failed to fetch HIS configuration');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Server Action - Get HIS Config Error:', error);
+    return null;
+  }
+}
+
+export async function getPacsConfigAction() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('radiora_token')?.value;
+
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch(`${API_URL}/api/integrations/pacs`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error('Failed to fetch PACS configuration');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Server Action - Get PACS Config Error:', error);
+    return null;
+  }
+}

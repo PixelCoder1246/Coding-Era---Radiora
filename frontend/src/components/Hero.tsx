@@ -24,7 +24,7 @@ export default function Hero({ user }: { user: User | null }) {
         <div className={styles.actions}>
           {isAuthenticated ? (
             <Link
-              href={user?.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'}
+              href={user?.role === 'ADMIN' ? '/admin/dashboard' : user?.role === 'DOCTOR' ? '/doctor' : ''}
               className="btn-primary"
               style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', textDecoration: 'none' }}
             >

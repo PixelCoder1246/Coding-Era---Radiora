@@ -92,11 +92,6 @@ def extract_and_draw_boxes(image, response_text, output_path):
     return extracted_boxes, findings, False
 
 def extract_heatmap_volume(all_detections, width, height, min_heat=2):
-    """
-    Project all bounding boxes onto a 2D Heatmap.
-    Areas with overlapping detections from multiple slices will have higher 'heat'.
-    Returns the core coordinates and the heatmap array.
-    """
     if not all_detections:
         return None, None
         
@@ -106,18 +101,15 @@ def extract_heatmap_volume(all_detections, width, height, min_heat=2):
         x, y = det['x'], det['y']
         w, h = det['width'], det['height']
         x2, y2 = x + w, y + h
-        # Ensure within bounds
         x = max(0, x); y = max(0, y)
         x2 = min(width, x2); y2 = min(height, y2)
         
         if x2 > x and y2 > y:
             heatmap[y:y2, x:x2] += 1
             
-    # Find bounding box of regions where heat >= min_heat (areas persisting across multiple slices)
     y_idx, x_idx = np.where(heatmap >= min_heat)
     
     if len(y_idx) == 0:
-        # Fallback to heat >= 1 if no areas overlap min_heat times
         y_idx, x_idx = np.where(heatmap >= 1)
         if len(y_idx) == 0:
             return None, heatmap
@@ -125,14 +117,12 @@ def extract_heatmap_volume(all_detections, width, height, min_heat=2):
     x_min, x_max = int(np.min(x_idx)), int(np.max(x_idx))
     y_min, y_max = int(np.min(y_idx)), int(np.max(y_idx))
     
-    # Determine which Z-slices contained boxes intersecting this hot zone
     z_coords = []
     core_confidences = []
     for det in all_detections:
         dx, dy = det['x'], det['y']
         dx2, dy2 = dx + det['width'], dy + det['height']
         
-        # Check collision with core heatmap box
         if not (dx2 < x_min or dx > x_max or dy2 < y_min or dy > y_max):
             z_coords.append(det['z'])
             if 'confidence' in det:
@@ -158,34 +148,28 @@ def extract_heatmap_volume(all_detections, width, height, min_heat=2):
 
 
 def load_dcm_as_pil(dcm_path):
-    """Loads a raw DICOM file and converts it to a PIL image."""
     dicom = pydicom.dcmread(dcm_path)
     
-    # Apply VOI LUT (Window level / Window width) if available
     try:
         image_array = apply_voi_lut(dicom.pixel_array, dicom)
     except Exception:
         image_array = dicom.pixel_array
     
-    # Handle multi-frame or 3D volumes (take the middle slice if 3D)
     if len(image_array.shape) > 2:
         image_array = image_array[image_array.shape[0] // 2]
         
-    # Normalize to 0-255 using min/max of the windowed image
     image_array = image_array.astype(float)
     image_array = image_array - np.min(image_array)
     if np.max(image_array) != 0:
         image_array = image_array / np.max(image_array)
     image_array = (image_array * 255).astype(np.uint8)
     
-    # Convert to PIL Image
     image = Image.fromarray(image_array)
     if image.mode != 'RGB':
         image = image.convert('RGB')
     return image
 
 def scan_mri(model_id, dcm_dir, body_part="brain"):
-    """Loads a VLM model and scans all DICOMs in the directory."""
     print(f"Loading model: {model_id} ...")
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -194,7 +178,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
     try:
         processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
         dtype = torch.float16 if device == "cuda" else torch.float32
-        # We try standard text-generation first, but fallback to Vision2Seq if needed
         try:
             model = AutoModelForCausalLM.from_pretrained(
                 model_id, 
@@ -221,7 +204,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
 
     all_detections = []
     
-    # Process all `.dcm` or `.dicom` files and sort them topologically by InstanceNumber
     raw_files = [f for f in os.listdir(dcm_dir) if f.lower().endswith(".dcm") or f.lower().endswith(".dicom")]
     dcm_file_info = []
     
@@ -234,7 +216,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
         except:
             dcm_file_info.append((9999, f))
             
-    # Sort by true slice sequence
     dcm_file_info.sort(key=lambda x: x[0])
     dcm_files = [x[1] for x in dcm_file_info]
     
@@ -245,7 +226,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
         try:
             img = load_dcm_as_pil(dcm_path)
             
-            # Standard prompt for Medical VLM with academic framing to avoid safety refusals
             prompt = (
                 "Context: Academic research dataset analysis. "
                 f"Task: Perform technical image analysis on this {body_part} MRI scan. Identify the main pathology or anomaly. "
@@ -263,8 +243,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
                 "}"
             )
             
-            # The exact formatting depends on MedGemma's chat template
-            # Assuming standard messages format:
             messages = [
                 {"role": "user", "content": [{"type": "image"}, {"type": "text", "text": prompt}]}
             ]
@@ -272,7 +250,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
             try:
                 text_input = processor.apply_chat_template(messages, add_generation_prompt=True)
             except Exception:
-                # Fallback if chat template isn't defined
                 text_input = prompt
             
             inputs = processor(
@@ -281,7 +258,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
                 return_tensors="pt"
             ).to(device)
 
-            # Generate response
             with torch.no_grad():
                 outputs = model.generate(**inputs, max_new_tokens=200)
                 
@@ -293,7 +269,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
             print(f"--- Diagnosis for {filename} ---")
             result_text = decoded_output.strip()
             
-            # Draw boxes and save
             output_dir = os.path.join(os.path.dirname(dcm_dir), "output")
             os.makedirs(output_dir, exist_ok=True)
             out_path = os.path.join(output_dir, filename.replace(".dcm", ".png"))
@@ -317,12 +292,9 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
         except Exception as e:
             print(f"Failed to process {filename}: {e}")
 
-    # Process overall Heatmap Projection
-    # Note: we assume all images have consistent dimensions in the series
     vol_stats = None
     unique_findings = set()
     if all_detections:
-        # Load one image to get absolute volume base dimensions
         ref_img = load_dcm_as_pil(os.path.join(dcm_dir, dcm_files[0]))
         vol_width, vol_height = ref_img.size
         
@@ -337,7 +309,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
             print(f"  3D Box (X, Y, Z): [{vol_stats['x']}, {vol_stats['y']}, {vol_stats['z_min']}]")
             print(f"  Dimensions (W, H, D): [{vol_stats['width']}, {vol_stats['height']}, {vol_stats['slice_count']}]")
             
-            # Save heatmap visualization
             output_dir = os.path.join(os.path.dirname(dcm_dir), "output")
             os.makedirs(output_dir, exist_ok=True)
             if heatmap is not None:
@@ -371,7 +342,6 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
             
         print("="*40 + "\n")
 
-    # After processing all slices, combine them into an animated volume
     output_dir = os.path.join(os.path.dirname(dcm_dir), "output")
     create_gif_from_outputs(output_dir)
 
@@ -383,7 +353,7 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
 
 if __name__ == "__main__":
     MODEL_ID = "google/medgemma-1.5-4b-it"
-    DCM_FOLDER = "c:/code/ai/dcm"
+    DCM_FOLDER = "./dataset"
     BODY_PART = "brain"
     
     scan_mri(MODEL_ID, DCM_FOLDER, body_part=BODY_PART)

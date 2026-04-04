@@ -8,10 +8,41 @@ import {
   getIntegrationStatusAction,
   activateHisAction,
   activatePacsAction,
+  getHisConfigAction,
+  getPacsConfigAction,
 } from '@/lib/actions/integration';
-import { Plus, Stethoscope, Database, Save, User as UserIcon, Power, CheckCircle, XCircle } from 'lucide-react';
+import {
+  listDoctorsAction,
+  addDoctorAction,
+  deleteDoctorAction,
+  resetDoctorPasswordAction,
+} from '@/lib/actions/doctor';
+import {
+  Plus,
+  Stethoscope,
+  Database,
+  Save,
+  User as UserIcon,
+  Power,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Trash2,
+  RotateCcw,
+} from 'lucide-react';
 import styles from '@/components/AdminDashboard.module.css';
 import AuthModal from '@/components/AuthModal';
+import DoctorRegistrationModal from '@/components/DoctorRegistrationModal';
+
+interface Doctor {
+  id: string;
+  name: string;
+  email: string;
+  maxConcurrentCases: number;
+  generatedPassword?: string;
+}
 
 export default function AdminDashboardClient({ user }: { user: User }) {
   // Modal state for feedback
@@ -20,6 +51,8 @@ export default function AdminDashboardClient({ user }: { user: User }) {
     type: 'success',
     message: '',
   });
+
+  const [isAddDoctorModalOpen, setIsAddDoctorModalOpen] = useState(false);
 
   const [integrationStatus, setIntegrationStatus] = React.useState<{
     pacs: { active: boolean; url?: string; activatedAt?: string };
@@ -45,6 +78,10 @@ export default function AdminDashboardClient({ user }: { user: User }) {
     pollIntervalSeconds: 0,
   });
 
+  // Configuration visibility state
+  const [showHisApiKey, setShowHisApiKey] = useState(false);
+  const [showPacsPassword, setShowPacsPassword] = useState(false);
+
   // Admin Details State (Profile)
   const [adminDetails] = useState({
     name: user?.name || 'Admin Name',
@@ -52,24 +89,58 @@ export default function AdminDashboardClient({ user }: { user: User }) {
     password: '••••••••',
   });
 
-  // Mock data for Doctors
-  const [doctors, setDoctors] = useState([
-    { id: 1, name: 'Dr. Sarah Connor', specialty: 'Neuroradiology', maxCases: 15 },
-    { id: 2, name: 'Dr. James Smith', specialty: 'Musculoskeletal', maxCases: 10 },
-    { id: 3, name: 'Dr. Elena Rodriguez', specialty: 'Abdominal Imaging', maxCases: 12 },
-  ]);
+  // Data for Doctors
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   React.useEffect(() => {
     fetchStatus();
+    fetchConfigs();
+    fetchDoctors();
   }, []);
 
-  const fetchStatus = async () => {
-    const status = await getIntegrationStatusAction();
-    setIntegrationStatus(status);
+  const fetchConfigs = async () => {
+    try {
+      const his = await getHisConfigAction();
+      if (his) {
+        setHisConfig({
+          url: his.url || '',
+          apiKey: his.apiKey || '',
+        });
+      }
+
+      const pacs = await getPacsConfigAction();
+      if (pacs) {
+        setPacsConfig({
+          url: pacs.url || '',
+          username: pacs.username || '',
+          password: pacs.password || '',
+          pollIntervalSeconds: pacs.pollIntervalSeconds || 30,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch configs:', err);
+    }
   };
 
-  const handleUpdateMaxCases = (id: number, newValue: number) => {
-    setDoctors(prev => prev.map(doc => (doc.id === id ? { ...doc, maxCases: newValue } : doc)));
+  const fetchStatus = async () => {
+    setLoading(true);
+    try {
+      const status = await getIntegrationStatusAction();
+      setIntegrationStatus(status);
+    } catch (err) {
+      console.error('Failed to fetch status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDoctors = async () => {
+    try {
+      const data = await listDoctorsAction();
+      setDoctors(data);
+    } catch (err) {
+      console.error('Failed to fetch doctors:', err);
+    }
   };
 
   const handleSaveHIS = async () => {
@@ -129,12 +200,72 @@ export default function AdminDashboardClient({ user }: { user: User }) {
     }
   };
 
-  const handleSaveAllotment = () => {
-    setModal({
-      isOpen: true,
-      type: 'success',
-      message: 'Allotment updated in UI. Persistent backend support for clinician management is coming soon.',
-    });
+  const handleAddDoctor = async (doctorData: { name: string; email: string; maxConcurrentCases: number }) => {
+    const result = await addDoctorAction(doctorData);
+    if (result.success) {
+      const generatedPassword = result.data?.generatedPassword;
+
+      setModal({
+        isOpen: true,
+        type: 'success',
+        message: `${doctorData.name} registered successfully!\nCredentials(Only shown once):\nEmail: ${doctorData.email}\nPassword: ${generatedPassword}`,
+      });
+      fetchDoctors();
+    } else {
+      setModal({
+        isOpen: true,
+        type: 'error',
+        message: result.error || 'Failed to register doctor',
+      });
+    }
+  };
+
+  const handleDeleteDoctor = async (doctorId: string, doctorName: string) => {
+    if (!confirm(`Are you sure you want to remove ${doctorName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const result = await deleteDoctorAction(doctorId);
+      if (result.success) {
+        setModal({ isOpen: true, type: 'success', message: `${doctorName} has been removed from the workspace.` });
+        fetchDoctors();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err) {
+      setModal({
+        isOpen: true,
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to remove doctor',
+      });
+    }
+  };
+
+  const handleResetPassword = async (doctorId: string, doctorName: string, doctorEmail: string) => {
+    if (!confirm(`Are you sure you want to reset the password for ${doctorName}?`)) {
+      return;
+    }
+
+    try {
+      const result = await resetDoctorPasswordAction(doctorId);
+      if (result.success) {
+        const generatedPassword = result.data?.generatedPassword;
+        setModal({
+          isOpen: true,
+          type: 'success',
+          message: `Password reset successfully for ${doctorName}!\n\nNew Credentials (shown only once):\nEmail: ${doctorEmail}\nPassword: ${generatedPassword}`,
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (err) {
+      setModal({
+        isOpen: true,
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Failed to reset password',
+      });
+    }
   };
 
   const handleEditProfile = () => {
@@ -154,6 +285,13 @@ export default function AdminDashboardClient({ user }: { user: User }) {
         onClose={() => setModal({ ...modal, isOpen: false })}
       />
 
+      {/* Registration Modal */}
+      <DoctorRegistrationModal
+        isOpen={isAddDoctorModalOpen}
+        onClose={() => setIsAddDoctorModalOpen(false)}
+        onAdd={handleAddDoctor}
+      />
+
       {/* Top Section */}
       <div className={styles.topSection}>
         <div className={`${styles.card} ${styles.registerBox}`}>
@@ -162,7 +300,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
           </div>
           <div style={{ maxWidth: '300px' }}>
             <h2 className={styles.cardTitle} style={{ justifyContent: 'center', marginBottom: '0.5rem' }}>
-              Add Clinician
+              Add Doctors
             </h2>
             <p style={{ color: 'var(--foreground)', fontSize: '0.95rem', opacity: 0.8 }}>
               Quickly register a new doctor or specialist to the Radiora workspace.
@@ -171,7 +309,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
           <button
             className="btn-primary"
             style={{ padding: '1rem 3rem', fontSize: '1.1rem' }}
-            onClick={() => (window.location.href = '/auth/register')}
+            onClick={() => setIsAddDoctorModalOpen(true)}
           >
             Register New Doctor
           </button>
@@ -208,37 +346,47 @@ export default function AdminDashboardClient({ user }: { user: User }) {
       {/* Middle Section: Doctors */}
       <div className={styles.doctorsSection}>
         <h2 className={styles.cardTitle}>
-          <Stethoscope size={24} /> Manage Clinicians
+          <Stethoscope size={24} /> Manage Doctors
         </h2>
         <div className={styles.doctorGrid}>
           {doctors.map(doctor => (
             <div key={doctor.id} className={styles.doctorCard}>
               <div className={styles.doctorHeader}>
-                <div className={styles.doctorAvatar}>{doctor.name.charAt(4)}</div>
+                <div className={styles.doctorAvatar}>Dr</div>
                 <div className={styles.doctorInfo}>
                   <span className={styles.doctorName}>{doctor.name}</span>
-                  <span className={styles.doctorSpecialty}>{doctor.specialty}</span>
+                  <span className={styles.doctorSpecialty}>{doctor.email}</span>
+                </div>
+                <div className={styles.doctorActions}>
+                  <button
+                    className={styles.doctorActionBtn}
+                    onClick={() => handleResetPassword(doctor.id, doctor.name, doctor.email)}
+                    title="Reset Password"
+                  >
+                    <RotateCcw size={18} />
+                  </button>
+                  <button
+                    className={`${styles.doctorActionBtn} ${styles.deleteBtn}`}
+                    onClick={() => handleDeleteDoctor(doctor.id, doctor.name)}
+                    title="Remove Doctor"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
-              <div className={styles.allotmentSection}>
-                <span className={styles.label} style={{ textTransform: 'none' }}>
-                  Max Cases Allotment
-                </span>
-                <input
-                  type="number"
-                  className={styles.input}
-                  style={{ width: '80px', textAlign: 'center', padding: '0.5rem' }}
-                  value={doctor.maxCases}
-                  onChange={e => handleUpdateMaxCases(doctor.id, parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <button
-                className="btn-outline"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                onClick={handleSaveAllotment}
+              <div
+                className={styles.allotmentSection}
+                style={{ borderTop: '1px solid var(--border)', marginTop: 'auto' }}
               >
-                <Save size={16} /> Save Allotment
-              </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '25px' }}>
+                  <span className={styles.label} style={{ textTransform: 'none' }}>
+                    Max Cases Allotment
+                  </span>
+                  <span className={styles.profileValue} style={{ fontSize: '1.2rem' }}>
+                    {doctor.maxConcurrentCases}
+                  </span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -246,9 +394,33 @@ export default function AdminDashboardClient({ user }: { user: User }) {
 
       {/* Bottom Section: HIS/PACS Configuration */}
       <div className={styles.configSection}>
-        <h2 className={styles.cardTitle}>
-          <Database size={24} /> Integration Services
-        </h2>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+          }}
+        >
+          <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>
+            <Database size={24} /> Integration Services
+          </h2>
+          <button
+            className="btn-outline"
+            onClick={fetchStatus}
+            disabled={loading}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.5rem 1rem',
+              fontSize: '0.9rem',
+            }}
+          >
+            <RefreshCw size={16} className={loading ? 'spin' : ''} />
+            {loading ? 'Checking...' : 'Check Status'}
+          </button>
+        </div>
 
         <div className={styles.integrationGrid}>
           {/* HIS Integration Card */}
@@ -287,13 +459,18 @@ export default function AdminDashboardClient({ user }: { user: User }) {
               </div>
               <div className={styles.inputGroup}>
                 <label className={styles.label}>API Key</label>
-                <input
-                  type="password"
-                  className={styles.input}
-                  placeholder="••••••••••••••••"
-                  value={hisConfig.apiKey}
-                  onChange={e => setHisConfig({ ...hisConfig, apiKey: e.target.value })}
-                />
+                <div className={styles.passwordWrapper}>
+                  <input
+                    type={showHisApiKey ? 'text' : 'password'}
+                    className={`${styles.input} ${styles.passwordInput}`}
+                    placeholder="••••••••••••••••"
+                    value={hisConfig.apiKey}
+                    onChange={e => setHisConfig({ ...hisConfig, apiKey: e.target.value })}
+                  />
+                  <button type="button" className={styles.eyeButton} onClick={() => setShowHisApiKey(!showHisApiKey)}>
+                    {showHisApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
               <div className={styles.actionRow}>
                 <button className={`btn-primary ${styles.actionBtn}`} onClick={handleSaveHIS}>
@@ -356,12 +533,21 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                 </div>
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>Password</label>
-                  <input
-                    type="password"
-                    className={styles.input}
-                    value={pacsConfig.password}
-                    onChange={e => setPacsConfig({ ...pacsConfig, password: e.target.value })}
-                  />
+                  <div className={styles.passwordWrapper}>
+                    <input
+                      type={showPacsPassword ? 'text' : 'password'}
+                      className={`${styles.input} ${styles.passwordInput}`}
+                      value={pacsConfig.password}
+                      onChange={e => setPacsConfig({ ...pacsConfig, password: e.target.value })}
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeButton}
+                      onClick={() => setShowPacsPassword(!showPacsPassword)}
+                    >
+                      {showPacsPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className={styles.inputGroup}>

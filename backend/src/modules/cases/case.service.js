@@ -69,11 +69,34 @@ async function getCaseById(caseId, adminId) {
   });
   const pacsBase = pacsConfig?.url || '';
 
+  // Fetch series to auto-load the first one in the viewer
+  let firstSeries = '';
+  try {
+    const studyRes = await fetch(`${pacsBase}/studies/${caseRecord.orthancId}`);
+    if (studyRes.ok) {
+      const studyData = await studyRes.json();
+      if (studyData.Series && studyData.Series.length > 0) {
+        firstSeries = studyData.Series[0];
+      }
+    }
+  } catch (e) {
+    console.error('Failed to fetch series for auto-load', e);
+  }
+
+  // Primary Viewer: OHIF (The "Pro" experience, confirmed working)
+  const pacsViewerUrl = pacsBase
+    ? `${pacsBase}/ohif/viewer?StudyInstanceUIDs=${caseRecord.studyInstanceUID}`
+    : null;
+
+  // Secondary/Fallback: Stone Web Viewer
+  const pacsWebViewerUrl = pacsBase
+    ? `${pacsBase}/stone-webviewer/index.html?study=${caseRecord.orthancId}${firstSeries ? `&series=${firstSeries}` : ''}`
+    : null;
+
   return {
     ...caseRecord,
-    pacsViewerUrl: pacsBase
-      ? `${pacsBase}/app/explorer.html#study?uuid=${caseRecord.orthancId}`
-      : null,
+    pacsViewerUrl,
+    pacsWebViewerUrl,
   };
 }
 

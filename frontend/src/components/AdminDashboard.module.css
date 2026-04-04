@@ -175,13 +175,48 @@
   color: var(--secondary-foreground);
 }
 
+.doctorActions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.doctorActionBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  color: var(--secondary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.doctorActionBtn:hover {
+  background: white;
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.15);
+}
+
+.deleteBtn:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
 .allotmentSection {
   margin-top: 0.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 1.5rem;
 }
 
 .integrationGrid {
@@ -312,4 +347,62 @@
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+}
+
+.iconBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.iconBtn:hover {
+  background: var(--muted);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: var(--muted);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInput {
+  padding-right: 3.5rem !important; /* Make room for the eye icon */
+  width: 100%;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--secondary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-sm);
+}
+
+.eyeButton:hover {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.1);
 }

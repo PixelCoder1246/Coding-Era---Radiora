@@ -9,7 +9,6 @@ from transformers import AutoProcessor, AutoModelForCausalLM, AutoModelForImageT
 from pydicom.pixel_data_handlers.util import apply_voi_lut
 
 def create_gif_from_outputs(output_dir):
-    """Compiles all processed .png files into an animated GIF."""
     print(f"\nCompiling Volumetric Animation...")
     
     if not os.path.exists(output_dir):
@@ -17,7 +16,7 @@ def create_gif_from_outputs(output_dir):
         return
 
     image_files = [f for f in os.listdir(output_dir) if f.lower().endswith(".png")]
-    image_files.sort()  # Sort alphanumerically to maintain layer sequence
+    image_files.sort()  
     
     if not image_files:
         print("No output PNGs found to compile.")
