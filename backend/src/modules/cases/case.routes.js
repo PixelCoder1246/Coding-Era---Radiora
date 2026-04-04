@@ -10,7 +10,10 @@ const {
   receiveAiResult,
   updateCaseStatus,
 } = require('./case.controller');
-const { submitReport, resendNotification } = require('../report/report.controller');
+const {
+  submitReport,
+  resendNotification,
+} = require('../report/report.controller');
 
 const router = Router();
 
@@ -23,6 +26,10 @@ router.get('/:caseId', getCaseById);
 router.patch('/:caseId/status', updateCaseStatus);
 router.post('/:caseId/assign', requireRole('ADMIN'), assignDoctor);
 router.post('/:caseId/report', requireRole('DOCTOR'), submitReport);
-router.post('/:caseId/resend-notification', requireRole('DOCTOR'), resendNotification);
+router.post(
+  '/:caseId/resend-notification',
+  requireRole('DOCTOR'),
+  resendNotification
+);
 
 module.exports = router;

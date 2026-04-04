@@ -26,7 +26,9 @@ async function sendReportEmail({ to, patientName, accessToken }) {
 
   try {
     const [response] = await sgMail.send(msg);
-    console.log(`[EMAIL] Report email sent to ${to}. Status: ${response.statusCode}`);
+    console.log(
+      `[EMAIL] Report email sent to ${to}. Status: ${response.statusCode}`
+    );
   } catch (err) {
     console.error(`[EMAIL] Failed to send to ${to}:`);
     if (err.response) {

@@ -87,8 +87,14 @@ async function updateCaseStatus(req, res) {
       return res.status(400).json({ error: 'status is required.' });
     }
 
-    const updated = await caseService.updateCaseStatus(caseId, status, req.user);
-    return res.status(200).json({ message: 'Case status updated.', case: updated });
+    const updated = await caseService.updateCaseStatus(
+      caseId,
+      status,
+      req.user
+    );
+    return res
+      .status(200)
+      .json({ message: 'Case status updated.', case: updated });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message });
   }

@@ -280,10 +280,16 @@ async function startPolling() {
 
     try {
       runPollCycle(pacsConfig, hisConfig).catch((err) =>
-        console.error(`[POLL] Initial cycle failed for admin ${adminId}:`, err.message)
+        console.error(
+          `[POLL] Initial cycle failed for admin ${adminId}:`,
+          err.message
+        )
       );
     } catch (err) {
-      console.error(`[POLL] Failed to trigger initial cycle for admin ${adminId}:`, err.message);
+      console.error(
+        `[POLL] Failed to trigger initial cycle for admin ${adminId}:`,
+        err.message
+      );
     }
 
     const interval = setInterval(() => {

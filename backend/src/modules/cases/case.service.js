@@ -129,7 +129,9 @@ async function updateCaseStatus(caseId, status, user) {
     user.role === 'DOCTOR' && existing.assignedDoctorId === user.userId;
 
   if (!isOrgAdmin && !isAssignedDoctor) {
-    const err = new Error('Forbidden: You do not have permission to update this case.');
+    const err = new Error(
+      'Forbidden: You do not have permission to update this case.'
+    );
     err.status = 403;
     throw err;
   }
@@ -137,7 +139,9 @@ async function updateCaseStatus(caseId, status, user) {
   // Basic validation for status transitions
   const validStatuses = ['PENDING_REVIEW', 'IN_REVIEW', 'COMPLETED'];
   if (!validStatuses.includes(status)) {
-    const err = new Error(`Invalid status. Use one of: ${validStatuses.join(', ')}`);
+    const err = new Error(
+      `Invalid status. Use one of: ${validStatuses.join(', ')}`
+    );
     err.status = 400;
     throw err;
   }
