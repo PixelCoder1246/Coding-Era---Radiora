@@ -87,12 +87,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const patientTags = studyMeta.PatientMainDicomTags || {};
 
   const studyInstanceUID = mainTags.StudyInstanceUID || null;
-  const useFallback = process.env.USE_FALLBACK_ACCESSION === 'true';
-  const accessionNumber =
-    mainTags.AccessionNumber ||
-    (useFallback
-      ? process.env.FALLBACK_ACCESSION_NUMBER || 'ACC-1774522981698-OI2W'
-      : null);
+  const accessionNumber = mainTags.AccessionNumber || null;
   const modality = mainTags.ModalitiesInStudy || mainTags.Modality || null;
   const studyDate = mainTags.StudyDate || null;
   const bodyPart = mainTags.BodyPartExamined || null;
@@ -104,7 +99,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   }
   if (!accessionNumber) {
     console.warn(
-      `[POLL] Skipping ${orthancId}: missing AccessionNumber and no FALLBACK_ACCESSION_NUMBER set`
+      `[POLL] Skipping study ${orthancId}: missing AccessionNumber. Linkage required via upload form.`
     );
     return;
   }
@@ -202,7 +197,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   } catch (err) {
     if (err.code === 'P2002') {
       console.warn(
-        `[POLL] studyInstanceUID=${studyInstanceUID} already exists as a case. Skipping.`
+        `[POLL] studyInstanceUID=${studyInstanceUID} already exists as a case for admin ${adminId}. Skipping.`
       );
       return;
     }

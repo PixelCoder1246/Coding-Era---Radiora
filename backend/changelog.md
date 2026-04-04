@@ -4,7 +4,30 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.5] - 2026-04-03
+
+### Fixed
+- **Multi-Tenancy Study Deduplication**: Updated `Case` and `ProcessedStudy` models to use composite uniqueness (`adminId` + `studyInstanceUID`). This allows different clinics to process the same study from a shared PACS without skipping or clashing.
+- **Per-Admin Polling**: The polling service now generates isolated cycles for each active admin, preventing state leakage and ensuring reliable metadata extraction for all organizations.
+- **DICOM Metadata Injection**: Added `dicom.utils.js` (using `dcmjs`) to inject/fix the `AccessionNumber` in DICOM files during manual upload. This ensures seamless linkage between the PACS and HIS even when the original file is missing identifiers.
+
+### Added
+- **Modality & BodyPart Extraction**: Polling now automatically extracts `Modality` and `BodyPartExamined` from DICOM tags and persists them to the `Case` record for dashboard visibility and AI routing.
+
+---
+
+## [0.3.4] - 2026-03-28
+
+### Added
+- `GET /api/integrations/pacs` (ADMIN only) — retrieves the full saved PACS config (`url`, `username`, `password`, `pollIntervalSeconds`, `active`, `activatedAt`) so the frontend can pre-fill the PACS settings form on load
+- `GET /api/integrations/his` (ADMIN only) — retrieves the full saved HIS config (`url`, `apiKey`, `active`, `activatedAt`) so the frontend can pre-fill the HIS settings form on load
+- `DELETE /api/admin/doctors/:doctorId` (ADMIN only) — removes a doctor from the org; automatically unassigns any active (non-completed) cases back to `UNASSIGNED`; blocked with `409` if the doctor has submitted reports (medical records must be preserved)
+- `PATCH /api/admin/doctors/:doctorId/reset-password` (ADMIN only) — generates a new secure random password for a doctor and returns it one-time in the response (`{ generatedPassword }`) — same pattern as doctor creation; old password is immediately invalidated
+
+---
+
 ## [0.3.3] - 2026-03-26
+
 
 ### Added
 - `POST /api/cases/:caseId/resend-notification` — endpoint for doctors to resend report notifications to patients.

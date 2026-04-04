@@ -4,6 +4,8 @@ const {
   requireRole,
 } = require('../../middleware/auth.middleware');
 const {
+  getPacsConfig,
+  getHisConfig,
   savePacsConfig,
   saveHisConfig,
   getStatus,
@@ -14,6 +16,8 @@ const {
 const router = Router();
 
 router.use(authMiddleware);
+router.get('/pacs', requireRole('ADMIN'), getPacsConfig);
+router.get('/his', requireRole('ADMIN'), getHisConfig);
 router.post('/pacs', requireRole('ADMIN'), savePacsConfig);
 router.post('/his', requireRole('ADMIN'), saveHisConfig);
 router.get('/status', getStatus);

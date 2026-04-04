@@ -41,6 +41,8 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 
 - Admin doctor creation via `POST /api/admin/doctors` — auto-generates password + configurable capacity
 - Admin doctor list via `GET /api/admin/doctors` — returns only this admin's doctors
+- Admin doctor removal via `DELETE /api/admin/doctors/:doctorId` — unassigns active cases; blocked if doctor has submitted reports
+- Admin password reset via `PATCH /api/admin/doctors/:doctorId/reset-password` — generates new password, returned one-time
 - Auto-assignment: cases assigned to least-loaded eligible doctor on creation
 - Patient contact storage: `patientEmail` and `patientPhone` pulled from HIS and stored on `Case`
 - Doctor report submission: `POST /api/cases/:caseId/report`
@@ -72,6 +74,19 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - **Stability**: Hardened polling service to prevent crashes on connection timeouts or PACS errors
 - **Terminal Cleanup**: Removed redundant WhatsApp console logs
 
+## Additions (v0.3.4)
+
+- **GET saved PACS config**: `GET /api/integrations/pacs` — returns full PACS config for pre-filling admin settings form
+- **GET saved HIS config**: `GET /api/integrations/his` — returns full HIS config for pre-filling admin settings form
+- **Delete doctor**: `DELETE /api/admin/doctors/:doctorId` — safe removal with active case cleanup; blocked on submitted reports
+- **Reset doctor password**: `PATCH /api/admin/doctors/:doctorId/reset-password` — generates new password, shown one-time
+
+## Fixes & Patches (v0.3.5)
+
+- **Study Multi-Tenancy**: Composite uniqueness on `adminId` + `studyInstanceUID` allows shared PACS polling without data clashing.
+- **DICOM Metadata Injection**: Added `dicom.utils.js` (using `dcmjs`) to inject/fix `AccessionNumber` in DICOM headers during upload.
+- **Metadata Extraction**: Polling now automatically captures `Modality` and `BodyPartExamined` from DICOM tags for dashboard visibility.
+
 ---
 
 ## Project Structure
@@ -91,7 +106,7 @@ backend/
       cases/            ← Case listing, detail, assignment, AI callback
       his/              ← HIS proxy (create patient, create order)
       pacs/             ← PACS upload (stream DICOM to Orthanc)
-      admin/            ← Admin: doctor creation
+      admin/            ← Admin: doctor creation, listing, deletion, password reset
       report/           ← Doctor report submission
       portal/           ← Public patient portal (token-based report access)
 
@@ -206,20 +221,32 @@ Server starts at `http://localhost:3000`.
 |---|---|---|
 | `POST` | `/api/pacs/upload` | Public |
 
-### Admin (Phase 3)
+### Admin
 
 | Method | Route | Access |
 |---|---|---|
-| `POST` | `/api/admin/doctors` | Admin |
+| `POST`  | `/api/admin/doctors` | Admin |
+| `GET`   | `/api/admin/doctors` | Admin |
+| `DELETE` | `/api/admin/doctors/:doctorId` | Admin |
+| `PATCH` | `/api/admin/doctors/:doctorId/reset-password` | Admin |
 
-### Cases — Phase 3 additions
+### Integrations — full config retrieval
+
+| Method | Route | Access |
+|---|---|---|
+| `GET` | `/api/integrations/pacs` | Admin |
+| `GET` | `/api/integrations/his` | Admin |
+
+### Cases
 
 | Method | Route | Access |
 |---|---|---|
 | `POST` | `/api/cases/:caseId/report` | Doctor |
+| `PATCH` | `/api/cases/:caseId/status` | Admin / Doctor |
+| `POST` | `/api/cases/:caseId/resend-notification` | Doctor |
 | `POST` | `/api/cases/:caseId/ai-result` | Public (AI callback) |
 
-### Patient Portal (Phase 3)
+### Patient Portal
 
 | Method | Route | Access |
 |---|---|---|
@@ -232,10 +259,10 @@ Server starts at `http://localhost:3000`.
 - **PACS** uses [Orthanc](https://www.orthanc-server.com/) which must be running locally for activation to succeed.
 - **HIS** is a mock service — activation points to a separately running HIS process.
 - Activation endpoints make a live HTTP request to validate connectivity before marking an integration as active.
-- Polling, case logic are **implemented in Phase 2**. AI integration and report handling are **not included yet**.
+- Deleting a doctor is blocked (`409`) if they have submitted reports — medical records are permanent.
 
 ---
 
 ## Version
 
-**Current Version: 0.3.0**
+**Current Version: 0.3.5**

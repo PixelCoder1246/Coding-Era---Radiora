@@ -30,4 +30,32 @@ async function listDoctors(req, res) {
   }
 }
 
-module.exports = { createDoctor, listDoctors };
+async function deleteDoctor(req, res) {
+  try {
+    const { doctorId } = req.params;
+    const result = await adminService.deleteDoctor(doctorId, req.user.adminId);
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function resetDoctorPassword(req, res) {
+  try {
+    const { doctorId } = req.params;
+    const result = await adminService.resetDoctorPassword(
+      doctorId,
+      req.user.adminId
+    );
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+module.exports = {
+  createDoctor,
+  listDoctors,
+  deleteDoctor,
+  resetDoctorPassword,
+};
