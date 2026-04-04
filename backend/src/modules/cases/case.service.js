@@ -198,7 +198,12 @@ async function deleteCase(caseId, adminId) {
   if (pacsConfig) {
     const authOpts =
       pacsConfig.username && pacsConfig.password
-        ? { auth: { username: pacsConfig.username, password: pacsConfig.password } }
+        ? {
+            auth: {
+              username: pacsConfig.username,
+              password: pacsConfig.password,
+            },
+          }
         : {};
     try {
       await axios.delete(`${pacsConfig.url}/studies/${existing.orthancId}`, {
@@ -207,7 +212,10 @@ async function deleteCase(caseId, adminId) {
       });
       console.log(`[CASE] Deleted Orthanc study ${existing.orthancId}`);
     } catch (err) {
-      console.warn(`[CASE] Could not delete Orthanc study ${existing.orthancId}:`, err.message);
+      console.warn(
+        `[CASE] Could not delete Orthanc study ${existing.orthancId}:`,
+        err.message
+      );
     }
   }
 
@@ -221,7 +229,16 @@ async function deleteCase(caseId, adminId) {
   await prisma.report.deleteMany({ where: { caseId } });
   await prisma.case.delete({ where: { id: caseId } });
 
-  return { message: 'Case deleted. Scan removed from PACS — polling will re-capture on next cycle.' };
+  return {
+    message:
+      'Case deleted. Scan removed from PACS — polling will re-capture on next cycle.',
+  };
 }
 
-module.exports = { listCases, getCaseById, assignDoctor, updateCaseStatus, deleteCase };
+module.exports = {
+  listCases,
+  getCaseById,
+  assignDoctor,
+  updateCaseStatus,
+  deleteCase,
+};

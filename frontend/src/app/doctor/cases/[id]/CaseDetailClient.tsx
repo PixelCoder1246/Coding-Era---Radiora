@@ -62,9 +62,7 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
   const router = useRouter();
 
   const aiResult: AiResult | null = caseData.aiResult ?? null;
-  const annotations: Annotation[] = Array.isArray(aiResult?.annotations)
-    ? (aiResult!.annotations as Annotation[])
-    : [];
+  const annotations: Annotation[] = Array.isArray(aiResult?.annotations) ? (aiResult!.annotations as Annotation[]) : [];
 
   // Mark in-review on mount
   useEffect(() => {
@@ -93,10 +91,14 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
 
   const aiStatusIcon = () => {
     switch (caseData.aiStatus) {
-      case 'COMPLETED': return <CheckCircle size={13} style={{ color: '#a78bfa' }} />;
-      case 'PROCESSING': return <Loader2 size={13} style={{ color: '#f59e0b', animation: 'spin 1s linear infinite' }} />;
-      case 'FAILED': return <AlertCircle size={13} style={{ color: '#ef4444' }} />;
-      default: return <Clock size={13} style={{ color: '#64748b' }} />;
+      case 'COMPLETED':
+        return <CheckCircle size={13} style={{ color: '#a78bfa' }} />;
+      case 'PROCESSING':
+        return <Loader2 size={13} style={{ color: '#f59e0b', animation: 'spin 1s linear infinite' }} />;
+      case 'FAILED':
+        return <AlertCircle size={13} style={{ color: '#ef4444' }} />;
+      default:
+        return <Clock size={13} style={{ color: '#64748b' }} />;
     }
   };
 
@@ -104,14 +106,21 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
     <div className={styles.studyContainer}>
       {/* Viewer Pane */}
       <div className={styles.viewerPane}>
-
         {/* Back button */}
         <button
           style={{
-            position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 50,
-            background: 'rgba(15,23,42,0.85)', padding: '0.5rem', borderRadius: '50%',
-            border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8',
-            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            position: 'absolute',
+            top: '1.5rem',
+            left: '1.5rem',
+            zIndex: 50,
+            background: 'rgba(15,23,42,0.85)',
+            padding: '0.5rem',
+            borderRadius: '50%',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: '#94a3b8',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             transition: 'all 0.2s',
           }}
           onClick={() => router.push('/doctor')}
@@ -126,12 +135,23 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              position: 'absolute', top: '1.5rem', left: '4.5rem', zIndex: 50,
-              background: 'rgba(15,23,42,0.85)', padding: '0.5rem 0.875rem',
-              borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.12)',
-              color: '#94a3b8', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem',
-              fontWeight: 700, textDecoration: 'none', transition: 'all 0.2s',
+              position: 'absolute',
+              top: '1.5rem',
+              left: '4.5rem',
+              zIndex: 50,
+              background: 'rgba(15,23,42,0.85)',
+              padding: '0.5rem 0.875rem',
+              borderRadius: '9999px',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              transition: 'all 0.2s',
             }}
           >
             <ExternalLink size={13} />
@@ -143,35 +163,55 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
         <button
           onClick={() => setShowAnnotations(v => !v)}
           style={{
-            position: 'absolute', bottom: '2rem', left: '2rem', zIndex: 50,
+            position: 'absolute',
+            bottom: '2rem',
+            left: '2rem',
+            zIndex: 50,
             background: showAnnotations ? 'rgba(15,23,42,0.9)' : 'rgba(30,10,60,0.9)',
             backdropFilter: 'blur(8px)',
             border: `1px solid ${showAnnotations ? 'rgba(167,139,250,0.3)' : 'rgba(167,139,250,0.6)'}`,
             padding: '0.6rem 1rem',
             borderRadius: '9999px',
-            color: '#a78bfa', fontSize: '0.8rem',
-            fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.6rem',
-            cursor: 'pointer', transition: 'all 0.2s',
+            color: '#a78bfa',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
           }}
         >
           <BrainCircuit size={14} />
           {aiStatusIcon()}
           <span>
             {caseData.aiStatus === 'COMPLETED'
-              ? showAnnotations ? '✦ AI Overlays ON' : '✧ AI Overlays OFF'
-              : caseData.aiStatus === 'PROCESSING' ? 'AI Analyzing…'
-                : caseData.aiStatus === 'FAILED' ? 'AI Failed'
+              ? showAnnotations
+                ? '✦ AI Overlays ON'
+                : '✧ AI Overlays OFF'
+              : caseData.aiStatus === 'PROCESSING'
+                ? 'AI Analyzing…'
+                : caseData.aiStatus === 'FAILED'
+                  ? 'AI Failed'
                   : 'No AI Analysis'}
           </span>
         </button>
 
         {/* Iframe loader overlay */}
         {iframeLoading && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex',
-            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            background: '#000', zIndex: 20, gap: '1rem',
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#000',
+              zIndex: 20,
+              gap: '1rem',
+            }}
+          >
             <Loader2 size={36} style={{ color: 'var(--primary)', animation: 'spin 1s linear infinite' }} />
             <p style={{ color: '#475569', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.08em' }}>
               LOADING DIAGNOSTIC VIEW…
@@ -190,11 +230,18 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
             onLoad={() => setIframeLoading(false)}
           />
         ) : (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex',
-            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '0.75rem', color: '#475569',
-          }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.75rem',
+              color: '#475569',
+            }}
+          >
             <p style={{ fontSize: '0.9rem', fontWeight: 500 }}>No PACS viewer configured.</p>
             <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>Ask your admin to set up the PACS integration.</p>
           </div>
@@ -232,11 +279,26 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
         }}
       >
         <div className={styles.panelHeader}>
-          <span style={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#64748b' }}>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: '#64748b',
+            }}
+          >
             Study Details
           </span>
           <button
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: '0.25rem' }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#64748b',
+              display: 'flex',
+              padding: '0.25rem',
+            }}
             onClick={() => setSidePanelOpen(false)}
           >
             <PanelRightClose size={18} />
@@ -259,7 +321,9 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
           ))}
 
           {/* Study */}
-          <div className={styles.sectionTitle} style={{ marginTop: '1.5rem' }}>Study</div>
+          <div className={styles.sectionTitle} style={{ marginTop: '1.5rem' }}>
+            Study
+          </div>
           {[
             { label: 'Accession', value: caseData.accessionNumber },
             { label: 'Modality', value: `${caseData.modality}${caseData.bodyPart ? ` · ${caseData.bodyPart}` : ''}` },
@@ -272,15 +336,40 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
           ))}
 
           {/* AI Results */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem', marginBottom: '1.25rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border)' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.075em', color: '#a78bfa' }}>AI Insights</span>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: '1.5rem',
+              marginBottom: '1.25rem',
+              paddingBottom: '0.5rem',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.075em',
+                color: '#a78bfa',
+              }}
+            >
+              AI Insights
+            </span>
             <button
               onClick={refreshAi}
               disabled={isRefreshingAi}
               title="Refresh AI results"
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: '#a78bfa', display: 'flex', alignItems: 'center', padding: '0.2rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#a78bfa',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '0.2rem',
                 opacity: isRefreshingAi ? 0.5 : 1,
               }}
             >
@@ -299,8 +388,23 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Confidence</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  <div style={{ flex: 1, height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round(aiResult.confidence * 100)}%`, height: '100%', background: '#a78bfa', borderRadius: '2px' }} />
+                  <div
+                    style={{
+                      flex: 1,
+                      height: '4px',
+                      background: 'var(--border)',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${Math.round(aiResult.confidence * 100)}%`,
+                        height: '100%',
+                        background: '#a78bfa',
+                        borderRadius: '2px',
+                      }}
+                    />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#a78bfa' }}>
                     {Math.round(aiResult.confidence * 100)}%
@@ -313,12 +417,19 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
               </div>
             </>
           ) : (
-            <div style={{
-              padding: '1.25rem', background: 'rgba(100,116,139,0.05)',
-              borderRadius: '0.5rem', border: '1px dashed rgba(100,116,139,0.2)',
-              textAlign: 'center',
-            }}>
-              <BrainCircuit size={20} style={{ margin: '0 auto 0.5rem', opacity: 0.25, display: 'block', color: '#a78bfa' }} />
+            <div
+              style={{
+                padding: '1.25rem',
+                background: 'rgba(100,116,139,0.05)',
+                borderRadius: '0.5rem',
+                border: '1px dashed rgba(100,116,139,0.2)',
+                textAlign: 'center',
+              }}
+            >
+              <BrainCircuit
+                size={20}
+                style={{ margin: '0 auto 0.5rem', opacity: 0.25, display: 'block', color: '#a78bfa' }}
+              />
               <p style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5 }}>
                 {caseData.aiStatus === 'PROCESSING'
                   ? 'AI analysis in progress… click refresh to check.'
@@ -339,9 +450,11 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
             onChange={e => setFindings(e.target.value)}
           />
           <button className={styles.actionButton} onClick={handleFinish} disabled={isFinishing}>
-            {isFinishing
-              ? <Loader2 style={{ animation: 'spin 1s linear infinite', margin: '0 auto', display: 'block' }} size={18} />
-              : 'Complete Review & Sign'}
+            {isFinishing ? (
+              <Loader2 style={{ animation: 'spin 1s linear infinite', margin: '0 auto', display: 'block' }} size={18} />
+            ) : (
+              'Complete Review & Sign'
+            )}
           </button>
         </div>
       </aside>
@@ -350,11 +463,20 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
       {!sidePanelOpen && (
         <button
           style={{
-            position: 'fixed', top: '50%', right: 0, transform: 'translateY(-50%)',
-            zIndex: 1010, background: 'rgba(15,23,42,0.9)',
-            padding: '1.25rem 0.5rem', borderRadius: '0.75rem 0 0 0.75rem',
-            border: '1px solid rgba(167,139,250,0.3)', borderRight: 'none',
-            color: '#a78bfa', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            position: 'fixed',
+            top: '50%',
+            right: 0,
+            transform: 'translateY(-50%)',
+            zIndex: 1010,
+            background: 'rgba(15,23,42,0.9)',
+            padding: '1.25rem 0.5rem',
+            borderRadius: '0.75rem 0 0 0.75rem',
+            border: '1px solid rgba(167,139,250,0.3)',
+            borderRight: 'none',
+            color: '#a78bfa',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
             boxShadow: '-4px 0 20px rgba(0,0,0,0.4)',
           }}
           onClick={() => setSidePanelOpen(true)}

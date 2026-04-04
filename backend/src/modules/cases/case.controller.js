@@ -1,7 +1,6 @@
 const caseService = require('./case.service');
 const prisma = require('../../config/db');
 
-
 async function listCases(req, res) {
   try {
     const cases = await caseService.listCases(req.user);

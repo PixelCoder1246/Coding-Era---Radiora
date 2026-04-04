@@ -1,6 +1,9 @@
 const { Router } = require('express');
 const multer = require('multer');
-const { authMiddleware, requireRole } = require('../../middleware/auth.middleware');
+const {
+  authMiddleware,
+  requireRole,
+} = require('../../middleware/auth.middleware');
 const { uploadDicom, listStudies, deleteStudy } = require('./pacs.controller');
 
 const upload = multer({ dest: 'uploads/' });

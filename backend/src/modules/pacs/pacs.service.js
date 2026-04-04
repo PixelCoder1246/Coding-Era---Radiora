@@ -251,11 +251,15 @@ async function deleteStudy(orthancId, adminId) {
       await prisma.report.deleteMany({ where: { caseId: caseRecord.id } });
       await prisma.case.delete({ where: { id: caseRecord.id } });
     }
-    await prisma.processedStudy.deleteMany({ where: { adminId, studyInstanceUID } });
+    await prisma.processedStudy.deleteMany({
+      where: { adminId, studyInstanceUID },
+    });
   }
 
-  return { message: 'Study deleted from Orthanc. Database records cleared — polling will re-capture on next cycle.' };
+  return {
+    message:
+      'Study deleted from Orthanc. Database records cleared — polling will re-capture on next cycle.',
+  };
 }
 
 module.exports = { uploadDicom, listStudies, deleteStudy };
-

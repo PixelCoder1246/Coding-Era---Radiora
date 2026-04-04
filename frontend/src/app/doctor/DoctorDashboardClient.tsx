@@ -39,7 +39,10 @@ export default function DoctorDashboardClient() {
 
   if (loading) {
     return (
-      <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+      <div
+        className={styles.container}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}
+      >
         <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: '#64748b' }} />
       </div>
     );
@@ -50,7 +53,9 @@ export default function DoctorDashboardClient() {
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Worklist</h1>
-          <p className={styles.subtitle}>{cases.length} assigned {cases.length === 1 ? 'study' : 'studies'}</p>
+          <p className={styles.subtitle}>
+            {cases.length} assigned {cases.length === 1 ? 'study' : 'studies'}
+          </p>
         </div>
       </header>
 
@@ -64,8 +69,12 @@ export default function DoctorDashboardClient() {
           <div
             className={styles.card}
             style={{
-              opacity: 0.45, fontWeight: 700, textTransform: 'uppercase',
-              fontSize: '0.65rem', letterSpacing: '0.1em', pointerEvents: 'none',
+              opacity: 0.45,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontSize: '0.65rem',
+              letterSpacing: '0.1em',
+              pointerEvents: 'none',
               cursor: 'default',
             }}
           >
@@ -78,11 +87,7 @@ export default function DoctorDashboardClient() {
           </div>
 
           {cases.map(study => (
-            <div
-              key={study.id}
-              className={styles.card}
-              onClick={() => router.push(`/doctor/cases/${study.id}`)}
-            >
+            <div key={study.id} className={styles.card} onClick={() => router.push(`/doctor/cases/${study.id}`)}>
               <span className={styles.modalityBadge}>{study.modality}</span>
 
               <div>
@@ -99,10 +104,7 @@ export default function DoctorDashboardClient() {
               </span>
 
               <div className={styles.statusIndicator}>
-                <div
-                  className={styles.pulser}
-                  style={{ background: STATUS_COLOR[study.status] ?? '#64748b' }}
-                />
+                <div className={styles.pulser} style={{ background: STATUS_COLOR[study.status] ?? '#64748b' }} />
                 <span style={{ color: STATUS_COLOR[study.status] ?? '#64748b', fontWeight: 600 }}>
                   {study.status.replace(/_/g, ' ')}
                 </span>

@@ -258,4 +258,3 @@ export async function deletePacsStudyAction(orthancId: string) {
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
-

@@ -345,11 +345,20 @@ export default function AdminDashboardClient({ user }: { user: User }) {
   };
 
   const handleDeleteCase = async (caseId: string, patientName: string) => {
-    if (!confirm(`Delete case for ${patientName}? This will also remove the scan from Orthanc so polling can re-capture it.`)) return;
+    if (
+      !confirm(
+        `Delete case for ${patientName}? This will also remove the scan from Orthanc so polling can re-capture it.`
+      )
+    )
+      return;
     try {
       const result = await deleteCaseAction(caseId);
       if (result.success) {
-        setModal({ isOpen: true, type: 'success', message: `Case for ${patientName} deleted. Re-upload the scan to re-process.` });
+        setModal({
+          isOpen: true,
+          type: 'success',
+          message: `Case for ${patientName} deleted. Re-upload the scan to re-process.`,
+        });
         fetchCases();
         fetchPacsStudies();
       } else {
@@ -361,7 +370,12 @@ export default function AdminDashboardClient({ user }: { user: User }) {
   };
 
   const handleDeleteStudy = async (orthancId: string, patientName?: string) => {
-    if (!confirm(`Delete study ${patientName ? `for ${patientName}` : orthancId} from Orthanc? This clears it from the DB too so polling can re-capture it.`)) return;
+    if (
+      !confirm(
+        `Delete study ${patientName ? `for ${patientName}` : orthancId} from Orthanc? This clears it from the DB too so polling can re-capture it.`
+      )
+    )
+      return;
     try {
       const result = await deletePacsStudyAction(orthancId);
       if (result.success) {
@@ -406,12 +420,30 @@ export default function AdminDashboardClient({ user }: { user: User }) {
             <h2 className={styles.cardTitle} style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>
               <Users size={18} /> Doctor Registry
             </h2>
-            <p style={{ color: 'var(--secondary-foreground)', fontSize: '0.8rem', lineHeight: '1.5', marginBottom: '1.5rem', maxWidth: '400px', fontWeight: 500 }}>
-              Register new doctors to access the Radiora clinical workstation. Credentials are auto-generated on creation.
+            <p
+              style={{
+                color: 'var(--secondary-foreground)',
+                fontSize: '0.8rem',
+                lineHeight: '1.5',
+                marginBottom: '1.5rem',
+                maxWidth: '400px',
+                fontWeight: 500,
+              }}
+            >
+              Register new doctors to access the Radiora clinical workstation. Credentials are auto-generated on
+              creation.
             </p>
             <button
               className="btn-primary"
-              style={{ padding: '0.65rem 1.5rem', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', background: 'var(--primary)', color: '#fff', border: 'none' }}
+              style={{
+                padding: '0.65rem 1.5rem',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+              }}
               onClick={() => setIsAddDoctorModalOpen(true)}
             >
               Register Doctor
@@ -456,7 +488,10 @@ export default function AdminDashboardClient({ user }: { user: User }) {
           <Stethoscope size={18} /> Registered Doctors
         </h2>
         {doctors.length === 0 ? (
-          <div className={styles.card} style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary-foreground)', fontSize: '0.85rem' }}>
+          <div
+            className={styles.card}
+            style={{ textAlign: 'center', padding: '2rem', color: 'var(--secondary-foreground)', fontSize: '0.85rem' }}
+          >
             No doctors registered yet. Register one above.
           </div>
         ) : (
@@ -486,10 +521,15 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                     </button>
                   </div>
                 </div>
-                <div className={styles.allotmentSection} style={{ borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
+                <div
+                  className={styles.allotmentSection}
+                  style={{ borderTop: '1px solid var(--border)', marginTop: 'auto' }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className={styles.label}>Max Cases</span>
-                    <span className={styles.profileValue} style={{ fontSize: '1rem' }}>{doctor.maxConcurrentCases}</span>
+                    <span className={styles.profileValue} style={{ fontSize: '1rem' }}>
+                      {doctor.maxConcurrentCases}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -501,30 +541,80 @@ export default function AdminDashboardClient({ user }: { user: User }) {
       {/* Bottom Section: Orchestration Configuration */}
       <div className={styles.configSection}>
         {/* Evaluation Advisory */}
-        <div style={{
-          background: 'var(--muted)',
-          border: '1px solid var(--border)',
-          borderRadius: '16px',
-          padding: '1.25rem 1.5rem',
-          marginBottom: '2rem',
-          display: 'flex',
-          gap: '1.25rem',
-          alignItems: 'flex-start',
-        }}>
+        <div
+          style={{
+            background: 'var(--muted)',
+            border: '1px solid var(--border)',
+            borderRadius: '16px',
+            padding: '1.25rem 1.5rem',
+            marginBottom: '2rem',
+            display: 'flex',
+            gap: '1.25rem',
+            alignItems: 'flex-start',
+          }}
+        >
           <Info size={18} style={{ color: 'var(--primary)', marginTop: '2px', flexShrink: 0 }} />
           <div>
-            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.4rem' }}>Evaluation Guide: Integration Endpoints</h3>
-            <p style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)', lineHeight: '1.5', maxWidth: '800px' }}>
+            <h3 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.4rem' }}>
+              Evaluation Guide: Integration Endpoints
+            </h3>
+            <p
+              style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)', lineHeight: '1.5', maxWidth: '800px' }}
+            >
               Use the following mock endpoints to demonstrate live clinical data ingestion for the evaluation.
             </p>
             <div style={{ display: 'flex', gap: '2rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
               <div>
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.25rem' }}>Mock HIS</span>
-                <code style={{ fontSize: '0.78rem', color: 'var(--foreground)', background: 'var(--secondary)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>https://his.radiora.ai/v1/mock</code>
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 800,
+                    color: 'var(--primary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'block',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  Mock HIS
+                </span>
+                <code
+                  style={{
+                    fontSize: '0.78rem',
+                    color: 'var(--foreground)',
+                    background: 'var(--secondary)',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '6px',
+                  }}
+                >
+                  https://his.radiora.ai/v1/mock
+                </code>
               </div>
               <div>
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '0.25rem' }}>PACS Node</span>
-                <code style={{ fontSize: '0.78rem', color: 'var(--foreground)', background: 'var(--secondary)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>http://localhost:8042 (demo/demo)</code>
+                <span
+                  style={{
+                    fontSize: '0.6rem',
+                    fontWeight: 800,
+                    color: '#10b981',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    display: 'block',
+                    marginBottom: '0.25rem',
+                  }}
+                >
+                  PACS Node
+                </span>
+                <code
+                  style={{
+                    fontSize: '0.78rem',
+                    color: 'var(--foreground)',
+                    background: 'var(--secondary)',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '6px',
+                  }}
+                >
+                  http://localhost:8042 (demo/demo)
+                </code>
               </div>
             </div>
           </div>
@@ -539,8 +629,12 @@ export default function AdminDashboardClient({ user }: { user: User }) {
             onClick={fetchStatus}
             disabled={loading}
             style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              padding: '0.4rem 0.9rem', fontSize: '0.8rem', borderRadius: '8px'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.4rem 0.9rem',
+              fontSize: '0.8rem',
+              borderRadius: '8px',
             }}
           >
             <RefreshCw size={13} className={loading ? 'spin' : ''} />
@@ -557,8 +651,9 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                 HIS Integration
               </div>
               <div
-                className={`${styles.statusBadge} ${integrationStatus.his.active ? styles.statusActive : styles.statusInactive
-                  }`}
+                className={`${styles.statusBadge} ${
+                  integrationStatus.his.active ? styles.statusActive : styles.statusInactive
+                }`}
               >
                 {integrationStatus.his.active ? (
                   <>
@@ -620,8 +715,9 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                 PACS Orchestration
               </div>
               <div
-                className={`${styles.statusBadge} ${integrationStatus.pacs.active ? styles.statusActive : styles.statusInactive
-                  }`}
+                className={`${styles.statusBadge} ${
+                  integrationStatus.pacs.active ? styles.statusActive : styles.statusInactive
+                }`}
               >
                 {integrationStatus.pacs.active ? (
                   <>
@@ -710,7 +806,14 @@ export default function AdminDashboardClient({ user }: { user: User }) {
             className="btn-outline"
             onClick={fetchCases}
             disabled={casesLoading}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.9rem', fontSize: '0.8rem', borderRadius: '8px' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.4rem 0.9rem',
+              fontSize: '0.8rem',
+              borderRadius: '8px',
+            }}
           >
             <RefreshCw size={13} className={casesLoading ? 'spin' : ''} />
             {casesLoading ? 'Loading…' : 'Refresh'}
@@ -718,34 +821,68 @@ export default function AdminDashboardClient({ user }: { user: User }) {
         </div>
 
         {cases.length === 0 ? (
-          <div className={styles.card} style={{ textAlign: 'center', padding: '3rem', color: 'var(--secondary-foreground)' }}>
+          <div
+            className={styles.card}
+            style={{ textAlign: 'center', padding: '3rem', color: 'var(--secondary-foreground)' }}
+          >
             <AlertCircle size={40} style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
             <p>No cases yet. Scans in Orthanc will appear here after polling.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {cases.map(c => (
-              <div key={c.id} className={styles.card} style={{ padding: '1.25rem 1.75rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <div
+                key={c.id}
+                className={styles.card}
+                style={{
+                  padding: '1.25rem 1.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.5rem',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <div style={{ flex: '1', minWidth: '120px' }}>
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>{c.patientName}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)' }}>{c.modality}{c.bodyPart ? ` · ${c.bodyPart}` : ''}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)' }}>
+                    {c.modality}
+                    {c.bodyPart ? ` · ${c.bodyPart}` : ''}
+                  </div>
                 </div>
                 <div style={{ flex: '1', minWidth: '120px' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--secondary-foreground)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>Doctor</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{c.assignedDoctor?.name || <span style={{ opacity: 0.4 }}>Unassigned</span>}</div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--secondary-foreground)',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    Doctor
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                    {c.assignedDoctor?.name || <span style={{ opacity: 0.4 }}>Unassigned</span>}
+                  </div>
                 </div>
                 <div style={{ flex: '1', minWidth: '100px' }}>
-                  <span style={{
-                    background: `${caseStatusColor[c.status]}22`,
-                    color: caseStatusColor[c.status],
-                    border: `1px solid ${caseStatusColor[c.status]}44`,
-                    borderRadius: '50px', padding: '0.3rem 0.9rem',
-                    fontSize: '0.8rem', fontWeight: 700,
-                  }}>
+                  <span
+                    style={{
+                      background: `${caseStatusColor[c.status]}22`,
+                      color: caseStatusColor[c.status],
+                      border: `1px solid ${caseStatusColor[c.status]}44`,
+                      borderRadius: '50px',
+                      padding: '0.3rem 0.9rem',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                    }}
+                  >
                     {c.status.replace('_', ' ')}
                   </span>
                 </div>
-                <div style={{ flex: '1', minWidth: '100px', fontSize: '0.85rem', color: 'var(--secondary-foreground)' }}>
+                <div
+                  style={{ flex: '1', minWidth: '100px', fontSize: '0.85rem', color: 'var(--secondary-foreground)' }}
+                >
                   {new Date(c.createdAt).toLocaleDateString()}
                 </div>
                 <button
@@ -779,17 +916,34 @@ export default function AdminDashboardClient({ user }: { user: User }) {
         </div>
 
         {pacsStudies.length === 0 ? (
-          <div className={styles.card} style={{ textAlign: 'center', padding: '3rem', color: 'var(--secondary-foreground)' }}>
+          <div
+            className={styles.card}
+            style={{ textAlign: 'center', padding: '3rem', color: 'var(--secondary-foreground)' }}
+          >
             <HardDrive size={40} style={{ margin: '0 auto 1rem', opacity: 0.4 }} />
-            <p>{pacsStudiesLoading ? 'Loading studies...' : 'No studies in Orthanc. Upload a DICOM file to get started.'}</p>
+            <p>
+              {pacsStudiesLoading ? 'Loading studies...' : 'No studies in Orthanc. Upload a DICOM file to get started.'}
+            </p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {pacsStudies.map(s => (
-              <div key={s.orthancId} className={styles.card} style={{ padding: '1.25rem 1.75rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+              <div
+                key={s.orthancId}
+                className={styles.card}
+                style={{
+                  padding: '1.25rem 1.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.5rem',
+                  flexWrap: 'wrap',
+                }}
+              >
                 <div style={{ flex: '1', minWidth: '120px' }}>
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>{s.patientName || 'Unknown Patient'}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--secondary-foreground)', fontFamily: 'monospace' }}>{s.orthancId.slice(0, 8)}...</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--secondary-foreground)', fontFamily: 'monospace' }}>
+                    {s.orthancId.slice(0, 8)}...
+                  </div>
                 </div>
                 <div style={{ flex: '1', minWidth: '80px', fontSize: '0.9rem' }}>
                   {s.modality || '—'} · {s.seriesCount ?? '?'} series
@@ -799,11 +953,31 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                 </div>
                 <div>
                   {s.hasCase ? (
-                    <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '50px', padding: '0.25rem 0.75rem', fontSize: '0.78rem', fontWeight: 700 }}>
+                    <span
+                      style={{
+                        background: 'rgba(16,185,129,0.1)',
+                        color: '#10b981',
+                        border: '1px solid rgba(16,185,129,0.2)',
+                        borderRadius: '50px',
+                        padding: '0.25rem 0.75rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                      }}
+                    >
                       ✓ Case Created{s.caseDoctorName ? ` · ${s.caseDoctorName}` : ''}
                     </span>
                   ) : (
-                    <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '50px', padding: '0.25rem 0.75rem', fontSize: '0.78rem', fontWeight: 700 }}>
+                    <span
+                      style={{
+                        background: 'rgba(245,158,11,0.1)',
+                        color: '#f59e0b',
+                        border: '1px solid rgba(245,158,11,0.2)',
+                        borderRadius: '50px',
+                        padding: '0.25rem 0.75rem',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                      }}
+                    >
                       No Case Yet
                     </span>
                   )}

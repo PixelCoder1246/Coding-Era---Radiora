@@ -82,7 +82,8 @@ async function activatePacs(req, res) {
     await startPolling();
 
     return res.status(200).json({
-      message: 'PACS integration activated. Polling restarted with updated interval.',
+      message:
+        'PACS integration activated. Polling restarted with updated interval.',
       ...result,
     });
   } catch (err) {
