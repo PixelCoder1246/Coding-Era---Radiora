@@ -91,7 +91,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const accessionNumber =
     mainTags.AccessionNumber ||
     (useFallback
-      ? process.env.FALLBACK_ACCESSION_NUMBER || 'ACC-1774474080740-INLL'
+      ? process.env.FALLBACK_ACCESSION_NUMBER || 'ACC-1774522981698-OI2W'
       : null);
   const modality = mainTags.ModalitiesInStudy || mainTags.Modality || null;
   const studyDate = mainTags.StudyDate || null;
@@ -229,7 +229,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   }
 
   if (isAiEnabled()) {
-    triggerAiAnalysis(newCase.id, studyInstanceUID);
+    triggerAiAnalysis(newCase.id, studyInstanceUID, pacsConfig.url);
     console.log(`[POLL] AI analysis triggered for case ${newCase.id}`);
   }
 }

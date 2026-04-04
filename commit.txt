@@ -1,12 +1,11 @@
-﻿Commit: 94298ae
+﻿Commit: 1e640c8
 Author: Adrian
-Date: Wed Mar 25 12:20:00 2026 +0530
+Date: Thu Mar 26 17:25:41 2026 +0530
 
 Message:
-fix(v0.3.1): polling crash recovery and accession fallback flag
+feat(v0.3.2): portal refactor, AI payload fix, docs rewrite
 
-- Move processedStudy.create before case.create to prevent retry-crash loop on server restart mid-poll
-- Add P2002 catch on case.create ΓÇö duplicate studyInstanceUID logs warning and skips instead of crashing poll cycle
-- Add USE_FALLBACK_ACCESSION env flag (default false for production)
-- Add FALLBACK_ACCESSION_NUMBER env var for testing without embedded accession numbers
+1. Portal /api/portal/report/:token now returns orthancBaseUrl, orthancId and studyInstanceUID so frontend can build any viewer URL it needs
+2. AI trigger now forwards orthancUrl so AI server knows which admin PACS to connect to
+3. Root docs/api.md and docs/workflow.md fully rewritten with correct endpoints, roles, multi-tenancy, workflows and flowchart
 

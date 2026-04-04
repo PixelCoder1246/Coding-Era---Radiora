@@ -58,6 +58,12 @@ The backend service for **Radiora** — a medical imaging workflow platform. It 
 - **Polling crash recovery**: `ProcessedStudy` marker saved before `Case` creation — prevents crash-retry loop on mid-poll server restart
 - **`USE_FALLBACK_ACCESSION` env flag**: `true` = allow DICOMs with no `AccessionNumber` to use `FALLBACK_ACCESSION_NUMBER`; `false` (production default) = skip such DICOMs entirely
 
+## Fixes & Patches (v0.3.2)
+
+- **Portal response refactored**: `GET /api/portal/report/:token` now returns `orthancBaseUrl`, `orthancId`, and `studyInstanceUID` — frontend builds the viewer URL it needs
+- **AI trigger fixed**: `orthancUrl` now included in AI payload so AI server knows which admin's PACS to connect to
+- **Root `docs/` updated**: `docs/api.md` and `docs/workflow.md` fully rewritten to match current backend — correct endpoints, roles, multi-tenancy, portal response shape, AI payload, and system flowchart
+
 ---
 
 ## Project Structure
@@ -86,12 +92,18 @@ backend/
 
     utils/
       jwt.js            ← signToken / verifyToken helpers
+      ai.js             ← non-blocking AI trigger with orthancUrl forwarding
+      email.js          ← SendGrid email sender
 
     services/
-      polling.service.js ← PACS polling loop, HIS matching, case creation
+      polling.service.js  ← per-admin PACS polling, HIS matching, case creation
+      assignment.service.js ← least-loaded doctor auto-assignment
 
   prisma/
-    schema.prisma       ← DB schema (User, Integration, Case, ProcessedStudy)
+    schema.prisma       ← DB schema (User, Integration, Case, ProcessedStudy, Report, AiResult)
+
+  docs/
+    api.md              ← Full API reference (endpoints, workflows, env vars)
 ```
 
 ---

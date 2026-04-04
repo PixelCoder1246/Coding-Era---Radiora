@@ -4,6 +4,18 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.2] - 2026-03-26
+
+### Changed
+- `GET /api/portal/report/:token` — response now returns `orthancBaseUrl`, `orthancId`, and `studyInstanceUID` instead of a pre-built `pacsViewerUrl`. Frontend constructs the viewer URL it needs from these three raw values (Orthanc explorer, OHIF, DICOMweb, etc.)
+- AI trigger payload now includes `orthancUrl` — AI server no longer needs to know Orthanc config separately; the correct admin's PACS URL is forwarded with every analysis request
+
+### Added
+- `docs/api.md` (root) — fully rewritten API reference: all endpoints, roles, auth, multi-tenancy, workflows (polling, AI callback, notifications), case lifecycle, portal viewer data, and env vars
+- `docs/workflow.md` (root) — fully rewritten step-by-step system workflow with updated mermaid flowchart
+
+---
+
 ## [0.3.1] - 2026-03-26
 
 ### Fixed
