@@ -14,11 +14,9 @@ export default function ContentSection({ title, subtitle, children }: ContentSec
         <h1 className={styles.title}>{title}</h1>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       </header>
-      
+
       <div className={styles.content}>
-        <div className={styles.card}>
-          {children}
-        </div>
+        <div className={styles.card}>{children}</div>
       </div>
     </div>
   );
