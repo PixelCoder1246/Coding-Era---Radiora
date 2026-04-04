@@ -33,6 +33,18 @@ async function modifyDicomAccession(
   }
 }
 
+function isDicomFile(filePath) {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    if (buffer.length < 132) return false;
+    const magic = buffer.toString('ascii', 128, 132);
+    return magic === 'DICM';
+  } catch {
+    return false;
+  }
+}
+
 module.exports = {
   modifyDicomAccession,
+  isDicomFile,
 };

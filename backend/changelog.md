@@ -4,6 +4,19 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.6] - 2026-04-03
+
+### Added
+- **Unified Deployment Stack**: Consolidated HIS, Orthanc, and Nginx into a single `services/docker-compose.yml` for streamlined EC2 deployments.
+- **Nginx Reverse Proxy**: Implemented hostname-based routing using `nip.io` virtual hosts (e.g., `his-ip.nip.io`). This allows multiple services on one IP with internal-only port security.
+- **Advanced DICOM Upload**: Added support for `.zip` archive uploads with automatic recursive extraction and `AccessionNumber` injection into every slice.
+- **HIS Dockerization**: Created a production-ready `Dockerfile` for the HIS service.
+
+### Fixed
+- **Stable Polling (Quiet Period)**: Implemented a 15-second "Stability Check" using Orthanc's `LastUpdate` metadata. This prevents the poller from creating "incomplete" cases while large studies are still uploading.
+
+---
+
 ## [0.3.5] - 2026-04-03
 
 ### Fixed
