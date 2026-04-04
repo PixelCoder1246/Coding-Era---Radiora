@@ -1,7 +1,11 @@
 const fs = require('fs');
 const dcmjs = require('dcmjs');
 
-async function modifyDicomAccession(filePath, destinationPath, accessionNumber) {
+async function modifyDicomAccession(
+  filePath,
+  destinationPath,
+  accessionNumber
+) {
   try {
     const arrayBuffer = fs.readFileSync(filePath).buffer;
     const dicomDict = dcmjs.data.DicomMessage.readFile(arrayBuffer);
@@ -11,11 +15,11 @@ async function modifyDicomAccession(filePath, destinationPath, accessionNumber) 
     if (dicomDict.dict[tag]) {
       dicomDict.dict[tag].Value = [accessionNumber];
     } else {
-      // If tag is missing, we add it. 
+      // If tag is missing, we add it.
       // Note: VR (Value Representation) for Accession Number is SH (Short String)
       dicomDict.dict[tag] = {
         vr: 'SH',
-        Value: [accessionNumber]
+        Value: [accessionNumber],
       };
     }
 
@@ -30,5 +34,5 @@ async function modifyDicomAccession(filePath, destinationPath, accessionNumber) 
 }
 
 module.exports = {
-  modifyDicomAccession
+  modifyDicomAccession,
 };
