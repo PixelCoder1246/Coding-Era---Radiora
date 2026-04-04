@@ -1,5 +1,31 @@
 const integrationService = require('./integration.service');
 
+async function getPacsConfig(req, res) {
+  try {
+    const config = await integrationService.getPacsConfig(req.user.adminId);
+    if (!config)
+      return res
+        .status(404)
+        .json({ error: 'PACS configuration not found. Save it first.' });
+    return res.status(200).json(config);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function getHisConfig(req, res) {
+  try {
+    const config = await integrationService.getHisConfig(req.user.adminId);
+    if (!config)
+      return res
+        .status(404)
+        .json({ error: 'HIS configuration not found. Save it first.' });
+    return res.status(200).json(config);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
 async function savePacsConfig(req, res) {
   try {
     const { url, username, password, pollIntervalSeconds } = req.body;
@@ -70,6 +96,8 @@ async function activateHis(req, res) {
 }
 
 module.exports = {
+  getPacsConfig,
+  getHisConfig,
   savePacsConfig,
   saveHisConfig,
   getStatus,

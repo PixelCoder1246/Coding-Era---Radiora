@@ -1,6 +1,6 @@
 {
   "name": "radiora-backend",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Radiora-backend: Medical Imaging Workflow Orchestrator",
   "main": "src/server.js",
   "scripts": {
@@ -19,6 +19,8 @@
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
+    "dcmjs": "^0.30.2",
+    "dicom-parser": "^1.8.21",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "form-data": "^4.0.5",

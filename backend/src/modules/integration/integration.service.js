@@ -58,6 +58,34 @@ async function getStatus(adminId) {
   };
 }
 
+async function getPacsConfig(adminId) {
+  const config = await prisma.integration.findUnique({
+    where: { adminId_type: { adminId, type: 'PACS' } },
+    select: {
+      url: true,
+      username: true,
+      password: true,
+      pollIntervalSeconds: true,
+      active: true,
+      activatedAt: true,
+    },
+  });
+  return config || null;
+}
+
+async function getHisConfig(adminId) {
+  const config = await prisma.integration.findUnique({
+    where: { adminId_type: { adminId, type: 'HIS' } },
+    select: {
+      url: true,
+      apiKey: true,
+      active: true,
+      activatedAt: true,
+    },
+  });
+  return config || null;
+}
+
 async function activatePacs(adminId) {
   const config = await prisma.integration.findUnique({
     where: { adminId_type: { adminId, type: 'PACS' } },
@@ -137,6 +165,8 @@ module.exports = {
   savePacsConfig,
   saveHisConfig,
   getStatus,
+  getPacsConfig,
+  getHisConfig,
   activatePacs,
   activateHis,
 };
