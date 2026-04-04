@@ -1,10 +1,13 @@
 const axios = require('axios');
 const prisma = require('../config/db');
+const { assignDoctorToCase } = require('./assignment.service');
+const { isAiEnabled, triggerAiAnalysis } = require('../utils/ai');
 
-let pollingInterval = null;
+const pollingIntervals = new Map();
 
 async function runPollCycle(pacsConfig, hisConfig) {
-  console.log('[POLL] Starting poll cycle...');
+  const adminId = pacsConfig.adminId;
+  console.log(`[POLL] Starting poll cycle for admin ${adminId}...`);
 
   let orthancIds;
   try {
@@ -24,20 +27,25 @@ async function runPollCycle(pacsConfig, hisConfig) {
     });
     orthancIds = response.data.slice(0, 50);
   } catch (err) {
-    console.error('[POLL] Failed to reach PACS:', err.message);
+    console.error(
+      `[POLL] Failed to reach PACS for admin ${adminId}:`,
+      err.message
+    );
     return;
   }
 
   if (!Array.isArray(orthancIds) || orthancIds.length === 0) {
-    console.log('[POLL] No studies found in PACS.');
+    console.log(`[POLL] No studies found in PACS for admin ${adminId}.`);
     return;
   }
 
-  console.log(`[POLL] Found ${orthancIds.length} studies in PACS.`);
+  console.log(
+    `[POLL] Found ${orthancIds.length} studies for admin ${adminId}.`
+  );
 
   for (const orthancId of orthancIds) {
     try {
-      await processStudy(orthancId, pacsConfig, hisConfig);
+      await processStudy(orthancId, pacsConfig, hisConfig, adminId);
     } catch (err) {
       console.error(
         `[POLL] Unexpected error processing study ${orthancId}:`,
@@ -46,10 +54,10 @@ async function runPollCycle(pacsConfig, hisConfig) {
     }
   }
 
-  console.log('[POLL] Cycle complete.');
+  console.log(`[POLL] Cycle complete for admin ${adminId}.`);
 }
 
-async function processStudy(orthancId, pacsConfig, hisConfig) {
+async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const authOpts =
     pacsConfig.username && pacsConfig.password
       ? {
@@ -95,7 +103,7 @@ async function processStudy(orthancId, pacsConfig, hisConfig) {
   }
 
   const already = await prisma.processedStudy.findUnique({
-    where: { studyInstanceUID },
+    where: { adminId_studyInstanceUID: { adminId, studyInstanceUID } },
   });
   if (already) return;
 
@@ -132,17 +140,19 @@ async function processStudy(orthancId, pacsConfig, hisConfig) {
   }
 
   let patientName = 'Unknown';
+  let patientEmail = null;
+  let patientPhone = null;
+
   if (hisPatientId) {
     try {
       const patientRes = await axios.get(
         `${hisConfig.url}/patients/${hisPatientId}`,
-        {
-          headers: hisHeaders,
-          timeout: 8000,
-        }
+        { headers: hisHeaders, timeout: 8000 }
       );
       patientName =
         patientRes.data.name || patientRes.data.patientName || 'Unknown';
+      patientEmail = patientRes.data.email || null;
+      patientPhone = patientRes.data.phone || null;
     } catch (err) {
       console.warn(
         `[POLL] Could not fetch patient ${hisPatientId}:`,
@@ -153,13 +163,16 @@ async function processStudy(orthancId, pacsConfig, hisConfig) {
 
   const studyDateParsed = studyDate ? parseStudyDate(studyDate) : null;
 
-  await prisma.case.create({
+  const newCase = await prisma.case.create({
     data: {
+      adminId,
       orthancId,
       studyInstanceUID,
       accessionNumber,
       patientId: hisPatientId || patientId || 'UNKNOWN',
       patientName,
+      patientEmail,
+      patientPhone,
       modality:
         typeof modality === 'string'
           ? modality
@@ -174,12 +187,32 @@ async function processStudy(orthancId, pacsConfig, hisConfig) {
   });
 
   await prisma.processedStudy.create({
-    data: { studyInstanceUID },
+    data: { adminId, studyInstanceUID },
   });
 
   console.log(
-    `[POLL] Case created → UID=${studyInstanceUID}, ACC=${accessionNumber}, Patient=${patientName}`
+    `[POLL] Case created → UID=${studyInstanceUID}, ACC=${accessionNumber}, Patient=${patientName}, Admin=${adminId}`
   );
+
+  const assignedDoctor = await assignDoctorToCase(adminId);
+  if (assignedDoctor) {
+    await prisma.case.update({
+      where: { id: newCase.id },
+      data: { assignedDoctorId: assignedDoctor.id, status: 'PENDING_REVIEW' },
+    });
+    console.log(
+      `[POLL] Case ${newCase.id} auto-assigned to doctor ${assignedDoctor.id}`
+    );
+  } else {
+    console.log(
+      `[POLL] No available doctor for case ${newCase.id}. Left UNASSIGNED.`
+    );
+  }
+
+  if (isAiEnabled()) {
+    triggerAiAnalysis(newCase.id, studyInstanceUID);
+    console.log(`[POLL] AI analysis triggered for case ${newCase.id}`);
+  }
 }
 
 function parseStudyDate(dateStr) {
@@ -192,43 +225,56 @@ function parseStudyDate(dateStr) {
 }
 
 async function startPolling() {
-  if (pollingInterval) {
-    console.log('[POLL] Polling already running. Skipping start.');
+  const activePacsIntegrations = await prisma.integration.findMany({
+    where: { type: 'PACS', active: true },
+  });
+
+  if (activePacsIntegrations.length === 0) {
+    console.log(
+      '[POLL] No active PACS integrations found. Polling not started.'
+    );
     return;
   }
 
-  const [pacsConfig, hisConfig] = await Promise.all([
-    prisma.integration.findUnique({ where: { type: 'PACS' } }),
-    prisma.integration.findUnique({ where: { type: 'HIS' } }),
-  ]);
+  for (const pacsConfig of activePacsIntegrations) {
+    const adminId = pacsConfig.adminId;
 
-  if (!pacsConfig || !pacsConfig.active) {
-    console.log('[POLL] PACS integration not active. Polling not started.');
-    return;
-  }
+    if (pollingIntervals.has(adminId)) {
+      console.log(`[POLL] Already polling for admin ${adminId}. Skipping.`);
+      continue;
+    }
 
-  if (!hisConfig || !hisConfig.active) {
-    console.log('[POLL] HIS integration not active. Polling not started.');
-    return;
-  }
+    const hisConfig = await prisma.integration.findUnique({
+      where: { adminId_type: { adminId, type: 'HIS' } },
+    });
 
-  const intervalSeconds = Math.max(pacsConfig.pollIntervalSeconds || 30, 10);
-  const intervalMs = intervalSeconds * 1000;
-  console.log(`[POLL] Starting polling every ${intervalSeconds}s`);
+    if (!hisConfig || !hisConfig.active) {
+      console.log(`[POLL] HIS not active for admin ${adminId}. Skipping.`);
+      continue;
+    }
 
-  runPollCycle(pacsConfig, hisConfig);
+    const intervalSeconds = Math.max(pacsConfig.pollIntervalSeconds || 30, 10);
+    const intervalMs = intervalSeconds * 1000;
+    console.log(
+      `[POLL] Starting polling for admin ${adminId} every ${intervalSeconds}s`
+    );
 
-  pollingInterval = setInterval(() => {
     runPollCycle(pacsConfig, hisConfig);
-  }, intervalMs);
+
+    const interval = setInterval(() => {
+      runPollCycle(pacsConfig, hisConfig);
+    }, intervalMs);
+
+    pollingIntervals.set(adminId, interval);
+  }
 }
 
 function stopPolling() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-    console.log('[POLL] Polling stopped.');
+  for (const [adminId, interval] of pollingIntervals.entries()) {
+    clearInterval(interval);
+    console.log(`[POLL] Polling stopped for admin ${adminId}.`);
   }
+  pollingIntervals.clear();
 }
 
 module.exports = { startPolling, stopPolling };

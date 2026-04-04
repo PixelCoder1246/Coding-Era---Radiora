@@ -37,11 +37,13 @@ async function login({ email, password }) {
     throw err;
   }
 
-  const token = signToken({ userId: user.id, role: user.role });
+  const adminId = user.role === 'ADMIN' ? user.id : user.createdByAdminId;
+
+  const token = signToken({ userId: user.id, role: user.role, adminId });
 
   return {
     token,
-    user: { id: user.id, name: user.name, role: user.role },
+    user: { id: user.id, name: user.name, role: user.role, adminId },
   };
 }
 

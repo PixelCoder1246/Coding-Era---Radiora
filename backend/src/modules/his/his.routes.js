@@ -1,9 +1,11 @@
 const { Router } = require('express');
+const { authMiddleware } = require('../../middleware/auth.middleware');
 const { createPatient, createOrder } = require('./his.controller');
 
 const router = Router();
 
-// Open endpoints — no auth required (demo/simulator use)
+router.use(authMiddleware);
+
 router.post('/patients', createPatient);
 router.post('/orders', createOrder);
 
