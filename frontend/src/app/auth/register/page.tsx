@@ -1,12 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import styles from '@/components/AdminAuth.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { UserPlus, ArrowRight } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
-
-type Role = 'ADMIN' | 'USER';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,7 +24,6 @@ export default function RegisterPage() {
     setModal(prev => ({ ...prev, isOpen: false }));
 
     const payload = { name, email, password, role: 'ADMIN' };
-    console.log(`Submitting Admin Register Payload:`, payload);
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -45,35 +42,66 @@ export default function RegisterPage() {
       setModal({
         isOpen: true,
         type: 'success',
-        message: 'Registration successful! Welcome to Radiora.',
+        message: 'Administrative account provisioned. Welcome to Radiora.',
       });
 
       setTimeout(() => {
         router.push('/auth/login');
         router.refresh();
-      }, 2000);
+      }, 1500);
     } catch (err: unknown) {
-      console.error(err);
-      const message = err instanceof Error ? err.message : 'An error occurred during registration';
-      setModal({
-        isOpen: true,
-        type: 'error',
-        message,
-      });
+      const message = err instanceof Error ? err.message : 'System registration service unavailable';
+      setModal({ isOpen: true, type: 'error', message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.authCard}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Admin Registration</h1>
-          <p className={styles.subtitle}>Create your administrator account for Radiora</p>
-        </div>
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--background)',
+        backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 75%)',
+        backgroundAttachment: 'fixed',
+        padding: '8rem 2rem 4rem',
+        fontFamily: 'var(--font-main)',
+        color: 'var(--foreground)',
+        transition: 'all 0.3s ease',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column' }}>
+        {/* Compact Registration Card Only */}
+        <div
+          style={{
+            background: 'var(--background)',
+            border: '1px solid var(--border)',
+            borderRadius: '24px',
+            padding: '2.5rem',
+            boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.1)',
+          }}
+        >
+          <div style={{ marginBottom: '1.75rem' }}>
+            <h1
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 800,
+                marginBottom: '0.35rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+              }}
+            >
+              <UserPlus size={20} color="var(--primary)" /> Admin Account
+            </h1>
+            <p style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)', fontWeight: 600 }}>
+              Provision your root access credentials
+            </p>
+          </div>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
           <AuthModal
             isOpen={modal.isOpen}
             type={modal.type}
@@ -81,61 +109,126 @@ export default function RegisterPage() {
             onClose={() => setModal(prev => ({ ...prev, isOpen: false }))}
           />
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="name" className={styles.label}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              className={styles.input}
-              placeholder="Your full name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  color: 'var(--secondary-foreground)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                placeholder="Johnathan Doe"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                style={{
+                  padding: '0.8rem 1.1rem',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--muted)',
+                  color: 'var(--foreground)',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  color: 'var(--secondary-foreground)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                System Email
+              </label>
+              <input
+                type="email"
+                placeholder="clinician@hospital.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                style={{
+                  padding: '0.8rem 1.1rem',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--muted)',
+                  color: 'var(--foreground)',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label
+                style={{
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  color: 'var(--secondary-foreground)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                Security Key
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                style={{
+                  padding: '0.8rem 1.1rem',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--muted)',
+                  color: 'var(--foreground)',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <button
+              disabled={loading}
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '1rem',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'var(--primary)',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                marginTop: '0.5rem',
+              }}
+            >
+              {loading ? 'Processing…' : 'Finalize Registration'}
+            </button>
+          </form>
+
+          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--secondary-foreground)', fontWeight: 600 }}>
+              Already registered?{' '}
+              <Link href="/auth/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 700 }}>
+                Sign In
+              </Link>
+            </span>
           </div>
-
-          <div className={styles.inputGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              className={styles.input}
-              placeholder="Your email address"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label htmlFor="password" className={styles.label}>
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <button type="submit" className={`btn-primary ${styles.submitBtn}`} disabled={loading}>
-            {loading ? 'Registering...' : 'Create Account'}
-          </button>
-        </form>
-
-        <div className={styles.footer}>
-          Already have an account?{' '}
-          <Link href="/auth/login" className={styles.link}>
-            Sign in
-          </Link>
         </div>
       </div>
     </div>

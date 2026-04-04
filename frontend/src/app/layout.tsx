@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import { ThemeProvider } from './ThemeProvider';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import ClientFooter from '@/components/ClientFooter';
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +57,7 @@ export default async function RootLayout({
         <ThemeProvider>
           <Navbar user={user} />
           <main>{children}</main>
-          <Footer />
+          <ClientFooter />
         </ThemeProvider>
       </body>
     </html>

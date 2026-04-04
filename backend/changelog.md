@@ -4,6 +4,13 @@ All notable changes to the Radiora-backend will be documented here.
 
 ---
 
+## [0.3.8] - 2026-04-05
+
+### Fixed
+- **Polling Interval Hotreload**: `activatePacs` controller now calls `stopPolling()` followed by `startPolling()` immediately after PACS activation. Previously, updating `pollIntervalSeconds` in the UI had no effect because the original `setInterval` (set at server boot) was never cleared. Config changes now take effect the moment the admin clicks Activate.
+
+---
+
 ## [0.3.7] - 2026-04-03
 
 ### Fixed

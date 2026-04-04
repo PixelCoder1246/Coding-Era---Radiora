@@ -212,3 +212,49 @@ export async function getPacsConfigAction() {
     return null;
   }
 }
+
+export async function listPacsStudiesAction() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('radiora_token')?.value;
+    if (!token) return { success: false, error: 'Unauthorized' };
+
+    const response = await fetch(`${API_URL}/api/pacs/studies`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: (err as { error?: string }).error || 'Failed to list studies' };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function deletePacsStudyAction(orthancId: string) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('radiora_token')?.value;
+    if (!token) return { success: false, error: 'Unauthorized' };
+
+    const response = await fetch(`${API_URL}/api/pacs/studies/${orthancId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: (err as { error?: string }).error || 'Failed to delete study' };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}

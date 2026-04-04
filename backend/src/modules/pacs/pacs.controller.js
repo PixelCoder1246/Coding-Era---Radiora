@@ -1,4 +1,7 @@
 const pacsService = require('./pacs.service');
+const multer = require('multer');
+
+const upload = multer({ dest: 'uploads/' });
 
 async function uploadDicom(req, res) {
   try {
@@ -24,4 +27,23 @@ async function uploadDicom(req, res) {
   }
 }
 
-module.exports = { uploadDicom };
+async function listStudies(req, res) {
+  try {
+    const studies = await pacsService.listStudies(req.user.adminId);
+    return res.status(200).json(studies);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+async function deleteStudy(req, res) {
+  try {
+    const { orthancId } = req.params;
+    const result = await pacsService.deleteStudy(orthancId, req.user.adminId);
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message });
+  }
+}
+
+module.exports = { uploadDicom, listStudies, deleteStudy };

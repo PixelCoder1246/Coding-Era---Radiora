@@ -9,6 +9,7 @@ const {
   assignDoctor,
   receiveAiResult,
   updateCaseStatus,
+  deleteCase,
 } = require('./case.controller');
 const {
   submitReport,
@@ -25,6 +26,7 @@ router.get('/', listCases);
 router.get('/:caseId', getCaseById);
 router.patch('/:caseId/status', updateCaseStatus);
 router.post('/:caseId/assign', requireRole('ADMIN'), assignDoctor);
+router.delete('/:caseId', requireRole('ADMIN'), deleteCase);
 router.post('/:caseId/report', requireRole('DOCTOR'), submitReport);
 router.post(
   '/:caseId/resend-notification',

@@ -1,6 +1,6 @@
 {
   "name": "radiora-backend",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Radiora-backend: Medical Imaging Workflow Orchestrator",
   "main": "src/server.js",
   "scripts": {
