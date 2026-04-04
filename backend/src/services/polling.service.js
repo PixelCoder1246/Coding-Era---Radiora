@@ -14,11 +14,11 @@ async function runPollCycle(pacsConfig, hisConfig) {
     const authOpts =
       pacsConfig.username && pacsConfig.password
         ? {
-          auth: {
-            username: pacsConfig.username,
-            password: pacsConfig.password,
-          },
-        }
+            auth: {
+              username: pacsConfig.username,
+              password: pacsConfig.password,
+            },
+          }
         : {};
 
     const response = await axios.get(`${pacsConfig.url}/studies`, {
@@ -61,11 +61,11 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
   const authOpts =
     pacsConfig.username && pacsConfig.password
       ? {
-        auth: {
-          username: pacsConfig.username,
-          password: pacsConfig.password,
-        },
-      }
+          auth: {
+            username: pacsConfig.username,
+            password: pacsConfig.password,
+          },
+        }
       : {};
 
   let studyMeta;

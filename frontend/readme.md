@@ -1,60 +1,97 @@
-# Radiora - Frontend
+# Radiora Frontend
 
-This is the central frontend repository for the Radiora platform, built with **Next.js 16**, **React 19**, and **TypeScript**.
-
-## Getting Started
-
-1.  **Clone and Navigate**:
-
-    ```bash
-    git clone https://github.com/PixelCoder1246/Coding-Era---Radiora.git
-    cd Coding-Era---Radiora/frontend
-    ```
-
-2.  **Installation**:
-
-    ```bash
-    npm install
-    ```
-
-3.  **Local Development**:
-    ```bash
-    npm run dev
-    ```
-
-## New Features (v0.2.0) - Phase 1 Complete
-
-- **Admin Dashboard**: Comprehensive clinical management interface featuring clinician allotments and system configuration.
-- **Workflow Orchestration**: Advanced card-based grid layout for managing PACS and HIS HL7 integrations.
-- **Security & Auth**: Centralized Next.js Middleware for JWT-based route protection and dynamic `async` root layout for real-time auth status.
-- **Shared UI Library**: Reusable design system including `ProfileDropdown`, `AuthModal`, `LogoutButton`, and a premium "curvy" aesthetic.
-- **Dynamic Navigation**: Context-aware Navbar and Hero sections that adapt to the user's authentication state.
-
-## Technology Stack
-
-- **Framework**: Next.js 16 (App Router)
-- **Library**: React 19
-- **Language**: TypeScript
-- **Styling**: 100% CSS Modules (Brand: Curvy Aesthetic)
-- **Tooling**: ESLint 9, Prettier 3, Lucide React Icons
-
-## Available Scripts
-
-- `npm run dev`: Starts the application on port `3001`.
-- `npm run build`: Compiles and optimizes the project for production.
-- `npm run start`: Runs the built production bundle.
-- `npm run lint`: Performs static analysis check using ESLint.
-- `npm run lint:fix`: Automatically fixes fixable linting and formatting issues.
-- `npm run format`: Runs Prettier directly to format the source code.
-
-## Project Structure
-
-- `src/app/`: Core application logic and routing.
-  - `(marketing)/`: Public-facing pages (About, Features, Privacy).
-  - `admin/`: Protected dashboard and system settings.
-- `src/components/`: Reusable UI components and Shared Library.
-- `src/lib/`: Unified server actions and authentication utilities.
+The frontend application for **Radiora** — a medical imaging workflow platform. It provides the user interface for doctors and administrators to interact with PACS, HIS, and AI insights.
 
 ---
 
-_Created by [Antigravity AI](https://github.com/GoogleDeepMind)_
+## Tech Stack
+
+| Tool                 | Purpose                     |
+| -------------------- | --------------------------- |
+| Next.js (App Router) | React framework and routing |
+| React 19             | UI Library                  |
+| TypeScript           | Static typing               |
+| CSS Modules          | Component-scoped styling    |
+| Lucide React         | Iconography                 |
+| ESLint + Prettier    | Code quality and formatting |
+
+---
+
+## Features (Phase 1 - Completed)
+
+- **Authentication Layer**: Centralized middleware-based route protection and JWT validation.
+- **Admin Dashboard**: Comprehensive workspace for managing clinicians and platform integrations.
+- **Premium UI**: Custom-designed landing page with glassmorphism, curvy borders, and responsive layouts.
+- **Integration Hub**: Real-time status tracking and configuration for HIS and PACS systems.
+- **Modular Styling**: 100% CSS Modules architecture for clean, component-scoped styles.
+- **SEO Ready**: Comprehensive metadata, OpenGraph tags, and semantic HTML optimization.
+- **Rich Content**: Dedicated Features, About, and 10+ informational subpages.
+
+---
+
+## Project Structure
+
+```
+frontend/
+  src/
+    app/                ← Next.js App Router
+      (marketing)/      ← Route group for platform, resources, and legal pages
+      globals.css       ← Design system variables and global resets
+    components/         ← Reusable UI (Navbar, Hero, Footer, ContentSection)
+    public/             ← Static assets (images, fonts, etc.)
+
+  public/               ← Static assets (images, fonts, etc.)
+
+  eslint.config.mjs     ← ESLint Flat config
+  .prettierrc           ← Prettier config
+```
+
+---
+
+## Setup
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure environment
+
+_(Environment variables configuration to be added when backend connection is established)_
+
+### 3. Start dev server
+
+```bash
+npm run dev
+# or with alias
+npm run frontend
+```
+
+Server starts at `http://localhost:3000`.
+
+---
+
+## Formatting & Linting
+
+```bash
+# Run the linter
+npm run lint
+
+# Auto-fix linting errors (if configured in package.json)
+npm run lint:fix
+```
+
+---
+
+## Notes
+
+- Backend connectivity is established for authentication and status checks.
+- Middleware handles route-level security for `/admin` and `/auth`.
+- Integration settings (HIS/PACS) are functional and persistent.
+
+---
+
+## Version
+
+**Current Version: 0.3.0**

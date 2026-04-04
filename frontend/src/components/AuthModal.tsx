@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import styles from './AuthModal.module.css';
 
 interface AuthModalProps {
@@ -11,15 +11,6 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, type, message, onClose }: AuthModalProps) {
-  useEffect(() => {
-    if (isOpen) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 2500); // Auto close after 2.5s
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   return (

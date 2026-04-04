@@ -1,0 +1,283 @@
+.container {
+  min-height: calc(100vh - 80px);
+  background: var(--background);
+  color: var(--foreground);
+  padding: 3rem 4rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.header {
+  margin-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2rem;
+  opacity: 0.85;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+/* Minimalist Worklist */
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.card {
+  background: var(--background);
+  display: grid;
+  grid-template-columns: 80px 2fr 1fr 1fr 150px 100px;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  transition: background 0.2s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.card:hover {
+  background: var(--secondary);
+}
+
+.modalityBadge {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 0.75rem;
+}
+
+.patientName {
+  font-weight: 500;
+}
+
+.patientId {
+  color: var(--muted-foreground);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.pulser {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulser::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: pulse 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.status-PENDING_REVIEW .pulser { background: #f59e0b; }
+.status-IN_REVIEW .pulser { background: #3b82f6; }
+.status-COMPLETED .pulser { background: #10b981; }
+
+.cardFooter {
+  text-align: right;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+/* Study View (Minimalist Workstation) */
+.studyContainer {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  position: absolute;
+  inset: 0;
+}
+
+.viewerPane {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewerFrame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Lean Sidebar - Fixed Height with Internal Scroll */
+.sidePanel {
+  width: 320px;
+  height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, background 0.3s ease;
+  z-index: 40;
+}
+
+.panelHeader {
+  flex: none;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panelContent {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: block;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  letter-spacing: 0.075em;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.detailLabel {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.detailValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* Reporting Area */
+.reportingArea {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 1.5rem;
+  background: var(--muted);
+}
+
+.findingInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  resize: none;
+  font-size: 0.9rem;
+  min-height: 120px;
+  outline: none;
+}
+
+/* Fix for dark-on-dark viewer surroundings */
+:global(.dark) .studyContainer {
+  background: #000;
+}
+
+.actionButton {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.actionButton:hover {
+  opacity: 0.9;
+}
+
+/* Floating AI Controls */
+.aiToggle {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  background: rgba(15, 23, 42, 0.85); /* Keep AI control dark/readable over black viewer */
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  color: #a78bfa;
+  font-weight: 500;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.aiOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.boundingBox {
+  position: absolute;
+  border: 1px solid #7c3aed;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+.aiLabel {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 4px;
+  font-weight: 700;
+}

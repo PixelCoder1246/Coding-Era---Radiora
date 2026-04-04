@@ -40,7 +40,7 @@ export default function ProfileDropdown({ user }: { user: User }) {
           <div className={styles.dropdownDivider}></div>
 
           <Link
-            href={isAdmin ? '/admin/dashboard' : '/dashboard'}
+            href={user.role === 'ADMIN' ? '/admin/dashboard' : user.role === 'DOCTOR' ? '/doctor' : ''}
             className={styles.dropdownItem}
             onClick={() => setIsOpen(false)}
           >

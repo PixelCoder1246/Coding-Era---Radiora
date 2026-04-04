@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres.otooeanqcyyduawxbfgp:aoXz7yFFiBh50XgN@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+}
+
+model User {
+  id                  String   @id @default(cuid())
+  name                String
+  email               String   @unique
+  passwordHash        String
+  role                Role     @default(DOCTOR)
+  maxConcurrentCases  Int      @default(5)
+  createdByAdminId    String?
+  createdAt           DateTime @default(now())
+}
