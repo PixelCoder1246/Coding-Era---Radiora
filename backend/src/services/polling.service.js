@@ -88,10 +88,12 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
 
   const studyInstanceUID = mainTags.StudyInstanceUID || null;
   const accessionNumber = mainTags.AccessionNumber || null;
-  const modality = mainTags.ModalitiesInStudy || mainTags.Modality || null;
   const studyDate = mainTags.StudyDate || null;
-  const bodyPart = mainTags.BodyPartExamined || null;
   const patientId = patientTags.PatientID || mainTags.PatientID || null;
+
+  let scanModality = mainTags.ModalitiesInStudy || mainTags.Modality || null;
+  let scanBodyPart =
+    mainTags.BodyPartExamined || mainTags.StudyDescription || null;
 
   if (!studyInstanceUID) {
     console.warn(`[POLL] Skipping ${orthancId}: missing StudyInstanceUID`);
@@ -104,9 +106,39 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
     return;
   }
 
-  // --- STABILITY CHECK (Quiet Period) ---
-  // Ensure the study hasn't been updated in the last 15 seconds to avoid partial processing.
-  const lastUpdateStr = studyMeta.LastUpdate; // e.g. "20260403T091357"
+  if (
+    (!scanBodyPart || !scanModality) &&
+    studyMeta.Series &&
+    studyMeta.Series.length > 0
+  ) {
+    try {
+      const firstSeriesId = studyMeta.Series[0];
+      const seriesRes = await axios.get(
+        `${pacsConfig.url}/series/${firstSeriesId}`,
+        {
+          ...authOpts,
+          timeout: 5000,
+        }
+      );
+      const seriesTags = seriesRes.data.MainDicomTags || {};
+
+      if (!scanModality) scanModality = seriesTags.Modality;
+
+      if (!scanBodyPart) {
+        scanBodyPart =
+          seriesTags.BodyPartExamined ||
+          seriesTags.PerformedProcedureStepDescription ||
+          null;
+      }
+    } catch (err) {
+      console.warn(
+        `[POLL] Could not fetch series details for ${orthancId}:`,
+        err.message
+      );
+    }
+  }
+
+  const lastUpdateStr = studyMeta.LastUpdate;
   if (lastUpdateStr) {
     const year = parseInt(lastUpdateStr.slice(0, 4));
     const month = parseInt(lastUpdateStr.slice(4, 6)) - 1;
@@ -126,7 +158,6 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
       return;
     }
   }
-  // --------------------------------------
 
   const already = await prisma.processedStudy.findUnique({
     where: { adminId_studyInstanceUID: { adminId, studyInstanceUID } },
@@ -157,6 +188,9 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
     );
     return;
   }
+
+  const finalModality = scanModality || order.modality || 'UNKNOWN';
+  const finalBodyPart = scanBodyPart || order.bodyPart || 'UNKNOWN';
 
   const hisPatientId = order.patientId || patientId;
 
@@ -189,7 +223,6 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
 
   const studyDateParsed = studyDate ? parseStudyDate(studyDate) : null;
 
-  // Mark processed FIRST — prevents retry crash if case.create fails mid-flight
   await prisma.processedStudy.create({
     data: { adminId, studyInstanceUID },
   });
@@ -207,12 +240,17 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
         patientEmail,
         patientPhone,
         modality:
-          typeof modality === 'string'
-            ? modality
-            : Array.isArray(modality)
-              ? modality.join('/')
+          typeof finalModality === 'string'
+            ? finalModality
+            : Array.isArray(finalModality)
+              ? finalModality.join('/')
               : 'UNKNOWN',
-        bodyPart: bodyPart || null,
+        bodyPart:
+          typeof finalBodyPart === 'string'
+            ? finalBodyPart
+            : Array.isArray(finalBodyPart)
+              ? finalBodyPart.join('/')
+              : 'UNKNOWN',
         studyDate: studyDateParsed,
         status: 'UNASSIGNED',
         aiStatus: 'NOT_REQUESTED',
