@@ -32,7 +32,9 @@ async function login(req, res) {
 
     res.cookie('radiora_token', result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true',
+      secure:
+        process.env.NODE_ENV === 'production' ||
+        process.env.SECURE_COOKIES === 'true',
       sameSite: 'none',
       maxAge: 24 * 60 * 60 * 1000,
       path: '/',
@@ -67,7 +69,9 @@ async function authStatus(req, res) {
 async function logout(req, res) {
   res.clearCookie('radiora_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' || process.env.SECURE_COOKIES === 'true',
+    secure:
+      process.env.NODE_ENV === 'production' ||
+      process.env.SECURE_COOKIES === 'true',
     sameSite: 'none',
     path: '/',
   });
