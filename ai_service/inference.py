@@ -183,16 +183,14 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
                 model_id, 
                 device_map="auto" if device == "cuda" else None,
                 torch_dtype=dtype,
-                trust_remote_code=True,
-                local_files_only=True
+                trust_remote_code=True
             )
         except Exception:
             model = AutoModelForImageTextToText.from_pretrained(
                 model_id, 
                 device_map="auto" if device == "cuda" else None,
                 torch_dtype=dtype,
-                trust_remote_code=True,
-                local_files_only=True
+                trust_remote_code=True
             )
             
     except Exception as e:
