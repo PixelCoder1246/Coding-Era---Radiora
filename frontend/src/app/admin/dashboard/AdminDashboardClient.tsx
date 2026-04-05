@@ -587,7 +587,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                     borderRadius: '6px',
                   }}
                 >
-                  https://his.radiora.ai/v1/mock
+                  https://his-13-204-42-87.nip.io
                 </code>
               </div>
               <div>
@@ -613,7 +613,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
                     borderRadius: '6px',
                   }}
                 >
-                  http://localhost:8042 (demo/demo)
+                  https://orthanc-13-204-42-87.nip.io
                 </code>
               </div>
             </div>

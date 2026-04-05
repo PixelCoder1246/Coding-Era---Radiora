@@ -5,7 +5,7 @@ import pydicom
 import numpy as np
 import re
 from PIL import Image, ImageDraw
-from transformers import AutoProcessor, AutoModelForCausalLM, AutoModelForImageTextToText
+from transformers import AutoProcessor, AutoModelForCausalLM, AutoModel
 from pydicom.pixel_data_handlers.util import apply_voi_lut
 
 def create_gif_from_outputs(output_dir):
@@ -176,24 +176,20 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
     print(f"Using device: {device}")
     
     try:
-        processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True, local_files_only=True)
-        dtype = torch.float16 if device == "cuda" else torch.float32
+        processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
+        # Optimized for GPU and Low Memory
+        model_kwargs = {
+            "device_map": "auto",
+            "dtype": "auto",
+            "low_cpu_mem_usage": True,
+            "trust_remote_code": True,
+            "attn_implementation": "eager"
+        }
+        
         try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_id, 
-                device_map="auto" if device == "cuda" else None,
-                torch_dtype=dtype,
-                trust_remote_code=True,
-                local_files_only=True
-            )
+            model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
         except Exception:
-            model = AutoModelForImageTextToText.from_pretrained(
-                model_id, 
-                device_map="auto" if device == "cuda" else None,
-                torch_dtype=dtype,
-                trust_remote_code=True,
-                local_files_only=True
-            )
+            model = AutoModel.from_pretrained(model_id, **model_kwargs)
             
     except Exception as e:
         print(f"Error loading model weights or processor: {e}")

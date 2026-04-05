@@ -5,7 +5,7 @@ import pydicom
 import numpy as np
 import re
 from PIL import Image, ImageDraw
-from transformers import AutoProcessor, AutoModelForCausalLM, AutoModelForImageTextToText
+from transformers import AutoProcessor, AutoModelForCausalLM, AutoModel
 from pydicom.pixel_data_handlers.util import apply_voi_lut
 
 def create_gif_from_outputs(output_dir):
@@ -186,23 +186,20 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
     
     try:
         processor = AutoProcessor.from_pretrained(model_id, trust_remote_code=True)
-        dtype = torch.float16 if device == "cuda" else torch.float32
-        # We try standard text-generation first, but fallback to Vision2Seq if needed
+        # Optimized for GPU and Low Memory
+        model_kwargs = {
+            "device_map": "auto",
+            "dtype": "auto",
+            "low_cpu_mem_usage": True,
+            "trust_remote_code": True,
+            "attn_implementation": "eager"
+        }
+        
         try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_id, 
-                device_map="auto" if device == "cuda" else None,
-                torch_dtype=dtype,
-                trust_remote_code=True
-            )
+            model = AutoModelForCausalLM.from_pretrained(model_id, **model_kwargs)
         except Exception:
-            print("AutoModelForCausalLM failed, trying AutoModelForImageTextToText...")
-            model = AutoModelForImageTextToText.from_pretrained(
-                model_id, 
-                device_map="auto" if device == "cuda" else None,
-                torch_dtype=dtype,
-                trust_remote_code=True
-            )
+            print("AutoModelForCausalLM failed, trying generic AutoModel...")
+            model = AutoModel.from_pretrained(model_id, **model_kwargs)
             
     except Exception as e:
         print(f"Error loading model weights or processor: {e}")
@@ -355,7 +352,7 @@ def scan_mri(model_id, dcm_dir, body_part="brain"):
 
 if __name__ == "__main__":
     MODEL_ID = "google/medgemma-1.5-4b-it"
-    DCM_FOLDER = "c:/code/ai/dcm"
+    DCM_FOLDER = "./dataset"
     BODY_PART = "brain"
     
     scan_mri(MODEL_ID, DCM_FOLDER, body_part=BODY_PART)
