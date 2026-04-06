@@ -66,18 +66,18 @@ npm run dev
 
 ## Key API Routes
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| `POST` | `/api/auth/register` | Create admin account |
-| `POST` | `/api/auth/login` | Login (returns JWT cookie) |
-| `GET` | `/api/cases` | List all cases for the admin |
-| `POST` | `/api/integrations/pacs` | Save PACS (Orthanc) config |
-| `POST` | `/api/integrations/pacs/activate` | Start polling Orthanc |
-| `POST` | `/api/integrations/his` | Save HIS config |
-| `POST` | `/api/integrations/his/activate` | Activate HIS connectivity |
-| `GET` | `/api/pacs/studies` | List studies currently in Orthanc |
-| `POST` | `/api/cases/:id/report` | Doctor submits a report |
-| `POST` | `/api/cases/:id/ai-result` | AI service posts back results |
+| Method | Route                             | Description                       |
+| ------ | --------------------------------- | --------------------------------- |
+| `POST` | `/api/auth/register`              | Create admin account              |
+| `POST` | `/api/auth/login`                 | Login (returns JWT cookie)        |
+| `GET`  | `/api/cases`                      | List all cases for the admin      |
+| `POST` | `/api/integrations/pacs`          | Save PACS (Orthanc) config        |
+| `POST` | `/api/integrations/pacs/activate` | Start polling Orthanc             |
+| `POST` | `/api/integrations/his`           | Save HIS config                   |
+| `POST` | `/api/integrations/his/activate`  | Activate HIS connectivity         |
+| `GET`  | `/api/pacs/studies`               | List studies currently in Orthanc |
+| `POST` | `/api/cases/:id/report`           | Doctor submits a report           |
+| `POST` | `/api/cases/:id/ai-result`        | AI service posts back results     |
 
 ---
 
@@ -96,11 +96,11 @@ Once PACS is activated via the admin dashboard:
 
 ## Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start with nodemon (hot reload) |
-| `npm start` | Start in production mode |
-| `npm run prisma:migrate` | Run DB migrations |
-| `npm run prisma:generate` | Regenerate Prisma client |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Run Prettier |
+| Script                    | Description                     |
+| ------------------------- | ------------------------------- |
+| `npm run dev`             | Start with nodemon (hot reload) |
+| `npm start`               | Start in production mode        |
+| `npm run prisma:migrate`  | Run DB migrations               |
+| `npm run prisma:generate` | Regenerate Prisma client        |
+| `npm run lint`            | Run ESLint                      |
+| `npm run format`          | Run Prettier                    |
