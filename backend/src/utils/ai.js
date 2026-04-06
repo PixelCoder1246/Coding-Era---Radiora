@@ -5,7 +5,13 @@ function isAiEnabled() {
   return !!url && url.trim().length > 0;
 }
 
-function triggerAiAnalysis(caseId, studyInstanceUID, orthancUrl, orthancUsername, orthancPassword) {
+function triggerAiAnalysis(
+  caseId,
+  studyInstanceUID,
+  orthancUrl,
+  orthancUsername,
+  orthancPassword
+) {
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
   const callbackUrl = `${backendUrl}api/cases/${caseId}/ai-result`;
 
@@ -24,7 +30,10 @@ function triggerAiAnalysis(caseId, studyInstanceUID, orthancUrl, orthancUsername
   axios
     .post(`${process.env.AI_BASE_URL}/analyze`, payload)
     .then((res) => {
-      console.log(`[AI] Successfully sent POST to AI server. Status:`, res.status);
+      console.log(
+        `[AI] Successfully sent POST to AI server. Status:`,
+        res.status
+      );
     })
     .catch((err) => {
       console.error(

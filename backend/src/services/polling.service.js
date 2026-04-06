@@ -287,10 +287,10 @@ async function processStudy(orthancId, pacsConfig, hisConfig, adminId) {
 
   if (isAiEnabled()) {
     triggerAiAnalysis(
-      newCase.id, 
-      studyInstanceUID, 
-      pacsConfig.url, 
-      pacsConfig.username, 
+      newCase.id,
+      studyInstanceUID,
+      pacsConfig.url,
+      pacsConfig.username,
       pacsConfig.password
     );
     console.log(`[POLL] AI analysis triggered for case ${newCase.id}`);
