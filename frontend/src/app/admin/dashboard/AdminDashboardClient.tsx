@@ -33,11 +33,9 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  RotateCcw,
   Activity,
   HardDrive,
   AlertCircle,
-  Users,
   Info,
 } from 'lucide-react';
 import styles from '@/components/AdminDashboard.module.css';
@@ -415,70 +413,60 @@ export default function AdminDashboardClient({ user }: { user: User }) {
 
       {/* Top Section: System Administration */}
       <div className={styles.topSection}>
-        <div className={`${styles.card} ${styles.registerBox}`}>
-          <div className={styles.registerContent}>
-            <h2 className={styles.cardTitle} style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>
-              <Users size={18} /> Doctor Registry
-            </h2>
-            <p
-              style={{
-                color: 'var(--secondary-foreground)',
-                fontSize: '0.8rem',
-                lineHeight: '1.5',
-                marginBottom: '1.5rem',
-                maxWidth: '400px',
-                fontWeight: 500,
-              }}
-            >
-              Register new doctors to access the Radiora clinical workstation. Credentials are auto-generated on
-              creation.
-            </p>
-            <button
-              className="btn-primary"
-              style={{
-                padding: '0.65rem 1.5rem',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                borderRadius: '10px',
-                background: 'var(--primary)',
-                color: '#fff',
-                border: 'none',
-              }}
-              onClick={() => setIsAddDoctorModalOpen(true)}
-            >
-              Register Doctor
-            </button>
+        {/* Doctor Registry Portal */}
+
+        {/* Doctor Registry Portal */}
+        <div className={`${styles.hudCard} ${styles.registerBox}`}>
+          <div
+            className={styles.plusIconEnlarged}
+            onClick={() => setIsAddDoctorModalOpen(true)}
+            title="Register New Doctor"
+          >
+            <Plus size={32} />
           </div>
-          <div className={styles.plusIconEnlarged} onClick={() => setIsAddDoctorModalOpen(true)}>
-            <Plus size={28} />
+          <div className={styles.registerContent}>
+            <h2
+              className={styles.cardTitle}
+              style={{ fontSize: '1rem', marginBottom: '0.4rem', justifyContent: 'center' }}
+            >
+              Registry Portal
+            </h2>
+            <p style={{ color: 'var(--secondary-foreground)', fontSize: '0.8rem', fontWeight: 600, opacity: 0.9 }}>
+              Initialize new clinical accounts
+            </p>
           </div>
         </div>
 
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle} style={{ fontSize: '1rem', marginBottom: '1.25rem' }}>
-            <UserIcon size={16} /> Admin Profile
-          </h2>
+        {/* Admin Profile - HUD Grid */}
+        <div className={styles.hudCard}>
+          <div
+            style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}
+          >
+            <h2 className={styles.cardTitle}>
+              <UserIcon size={16} /> Admin Profile
+            </h2>
+            <button
+              className="btn-outline"
+              style={{ fontSize: '0.65rem', padding: '0.4rem 0.8rem', borderRadius: '6px' }}
+              onClick={handleEditProfile}
+            >
+              Update Details
+            </button>
+          </div>
           <div className={styles.adminProfileBox}>
             <div className={styles.profileItem}>
-              <span className={styles.label}>Name</span>
+              <span className={styles.label}>Identity</span>
               <span className={styles.profileValue}>{adminDetails.name}</span>
             </div>
             <div className={styles.profileItem}>
-              <span className={styles.label}>Email</span>
+              <span className={styles.label}>Network Access</span>
               <span className={styles.profileValue}>{adminDetails.email}</span>
             </div>
             <div className={styles.profileItem}>
-              <span className={styles.label}>Role</span>
+              <span className={styles.label}>Authorization</span>
               <span className={styles.profileValue}>Root Administrator</span>
             </div>
           </div>
-          <button
-            className="btn-outline"
-            style={{ marginTop: '1rem', width: '100%', fontSize: '0.75rem', padding: '0.6rem', borderRadius: '8px' }}
-            onClick={handleEditProfile}
-          >
-            Edit Profile
-          </button>
         </div>
       </div>
 
@@ -497,7 +485,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
         ) : (
           <div className={styles.doctorGrid}>
             {doctors.map(doctor => (
-              <div key={doctor.id} className={styles.doctorCard}>
+              <div key={doctor.id} className={`${styles.card} ${styles.doctorCard}`}>
                 <div className={styles.doctorHeader}>
                   <div className={styles.doctorAvatar}>{doctor.name.charAt(0)}</div>
                   <div className={styles.doctorInfo}>
@@ -644,7 +632,7 @@ export default function AdminDashboardClient({ user }: { user: User }) {
 
         <div className={styles.integrationGrid}>
           {/* HIS Integration Card */}
-          <div className={styles.integrationCard}>
+          <div className={`${styles.card} ${styles.integrationCard}`}>
             <div className={styles.integrationCardHeader}>
               <div className={styles.integrationCardTitle}>
                 <Database size={22} color="var(--primary)" />

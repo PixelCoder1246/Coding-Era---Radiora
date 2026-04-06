@@ -7,18 +7,18 @@ import ClientFooter from '@/components/ClientFooter';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Radiora | Medical Imaging & Radiology Workflow Platform',
+    default: 'Radiora | The Platform that Powers Radiology',
     template: '%s | Radiora',
   },
   description:
-    'Radiora is the next-generation workflow platform for medical imaging. Connect PACS, HIS, and AI insights into a single, intelligent radiology workspace.',
+    'Radiora is the orchestration platform that powers radiology. Reclaiming focus and reducing burnout for the modern radiologist through AI-first workflows.',
   keywords: [
-    'Radiology Workflow',
-    'PACS Integration',
-    'HIS Integration',
-    'Medical Imaging AI',
-    'DICOM Orchestration',
-    'Radiology Dashboard',
+    'Radiology Orchestration',
+    'Physician Burnout Reduction',
+    'PACS Workflow',
+    'HIS Synchronization',
+    'Medical AI Triage',
+    'Clinical Workstation',
   ],
   authors: [{ name: 'Radiora Team' }],
   creator: 'Radiora Inc',
@@ -26,14 +26,15 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://radiora.app',
-    title: 'Radiora | Medical Imaging Reimagined',
-    description: "Streamline your radiology department with Radiora's intelligent orchestration of PACS, HIS, and AI.",
+    title: 'Radiora | Powering Radiology',
+    description:
+      'Reclaim your clinical focus. Radiora orchestrates PACS, HIS, and AI to eliminate diagnostic friction.',
     siteName: 'Radiora',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Radiora | Medical Imaging Reimagined',
-    description: 'The intelligent intersection of PACS, HIS, and AI for modern radiology.',
+    title: 'Radiora | Powering Radiology',
+    description: 'The orchestration engine that empowers the modern radiologist.',
     creator: '@radiora',
   },
   robots: {
@@ -43,6 +44,7 @@ export const metadata: Metadata = {
 };
 
 import { getAuthStatusAction } from '@/lib/actions/auth';
+import BackgroundBubbles from '@/components/BackgroundBubbles';
 
 export default async function RootLayout({
   children,
@@ -55,6 +57,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
+          <BackgroundBubbles />
           <Navbar user={user} />
           <main>{children}</main>
           <ClientFooter />

@@ -2,7 +2,6 @@ import React from 'react';
 import { redirect } from 'next/navigation';
 import { getAuthStatusAction } from '@/lib/actions/auth';
 import DoctorDashboardClient from './DoctorDashboardClient';
-import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default async function DoctorDashboardPage() {

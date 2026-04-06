@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { User } from '@/lib/actions/auth';
 import {
   ArrowRight,
-  Activity,
   Brain,
   Database,
   FileText,
@@ -17,6 +16,7 @@ import {
   Zap,
   CheckCircle,
 } from 'lucide-react';
+import styles from './Hero.module.css';
 
 const FEATURES = [
   {
@@ -99,137 +99,30 @@ export default function Hero({ user }: { user: User | null }) {
   const dashboardHref = user?.role === 'ADMIN' ? '/admin/dashboard' : '/doctor';
 
   return (
-    <div style={{ fontFamily: 'var(--font-main)', color: 'var(--foreground)' }}>
+    <div className={styles.mainContainer}>
       {/* ── HERO ──────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          height: '100vh',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          alignItems: 'center',
-          gap: '3rem',
-          padding: '0 5rem',
-          paddingTop: '5rem',
-          position: 'relative',
-          overflow: 'hidden',
-          background: 'var(--background)',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          boxSizing: 'border-box',
-        }}
-      >
-        {/* Background glow */}
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 0,
-            background: 'radial-gradient(ellipse 70% 60% at 30% 50%, rgba(37,99,235,0.07) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
+      <section className={styles.heroSection}>
         {/* LEFT — Text content */}
         <div style={{ position: 'relative', zIndex: 1 }}>
-          {/* Badge */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'rgba(37,99,235,0.08)',
-              border: '1px solid rgba(37,99,235,0.18)',
-              borderRadius: '50px',
-              padding: '0.35rem 0.9rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.7rem',
-              fontWeight: 800,
-              color: 'var(--primary)',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-            }}
-          >
-            <Activity size={12} />
-            Radiora · v0.3.7
-          </div>
-
           {/* Headline */}
-          <h1
-            style={{
-              fontSize: 'clamp(2rem, 3.2vw, 3.2rem)',
-              fontWeight: 900,
-              lineHeight: 1.1,
-              letterSpacing: '-0.035em',
-              marginBottom: '1.25rem',
-              color: 'var(--foreground)',
-            }}
-          >
-            The Platform That{' '}
-            <span
-              style={{
-                background: 'linear-gradient(135deg, var(--primary) 0%, #818cf8 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              Powers Radiology
-            </span>
+          <h1 className={styles.title}>
+            The Platform That <span className={styles.highlight}>Powers Radiology</span>
           </h1>
 
           {/* Subtitle */}
-          <p
-            style={{
-              fontSize: '0.95rem',
-              color: 'var(--secondary-foreground)',
-              lineHeight: 1.7,
-              marginBottom: '2rem',
-              fontWeight: 500,
-              maxWidth: '480px',
-            }}
-          >
-            Radiora bridges your Orthanc PACS, HIS, and AI in one unified workstation — automatically creating cases,
+          <p className={styles.subtitle}>
+            Radiora bridges your Orthanc PACS, HIS, and AI in one unified workstation, automatically creating cases,
             assigning doctors, and surfacing diagnostics the moment a scan arrives.
           </p>
 
           {/* CTAs */}
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-            <Link
-              href={isAuthenticated ? dashboardHref : '/auth/login'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: 'var(--primary)',
-                color: '#fff',
-                padding: '0.8rem 1.6rem',
-                borderRadius: '12px',
-                fontWeight: 800,
-                fontSize: '0.9rem',
-                textDecoration: 'none',
-                boxShadow: '0 8px 20px -6px rgba(37,99,235,0.4)',
-              }}
-            >
-              {isAuthenticated ? 'Go to Workstation' : 'Enter Platform'}
-              <ArrowRight size={16} />
+          <div className={styles.actions}>
+            <Link href={isAuthenticated ? dashboardHref : '/auth/login'} className="btn-primary">
+              {isAuthenticated ? 'Open Workstation' : 'Enter Platform'}
+              <ArrowRight size={16} style={{ marginLeft: '0.5rem' }} />
             </Link>
-            <a
-              href="#features"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: 'var(--muted)',
-                color: 'var(--foreground)',
-                padding: '0.8rem 1.6rem',
-                borderRadius: '12px',
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                textDecoration: 'none',
-                border: '1px solid var(--border)',
-              }}
-            >
-              See How It Works
+            <a href="#features" className="btn-outline">
+              How It Works
             </a>
           </div>
 
@@ -247,20 +140,7 @@ export default function Hero({ user }: { user: User | null }) {
         </div>
 
         {/* RIGHT — Real screenshot */}
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0',
-            borderRadius: '20px',
-            overflow: 'hidden',
-            border: '1px solid var(--border)',
-            boxShadow: '0 30px 70px -15px rgba(0,0,0,0.25)',
-            alignSelf: 'center',
-          }}
-        >
+        <div className={styles.screenshotContainer}>
           {/* Browser chrome bar */}
           <div
             style={{
@@ -311,13 +191,7 @@ export default function Hero({ user }: { user: User | null }) {
       </section>
 
       {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}
-      <section
-        style={{
-          padding: '7rem 2rem',
-          background: 'var(--muted)',
-          position: 'relative',
-        }}
-      >
+      <section className={styles.howItWorks}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <p
@@ -335,21 +209,11 @@ export default function Hero({ user }: { user: User | null }) {
             <h2
               style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1 }}
             >
-              From scan to report in{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, var(--primary), #818cf8)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                three steps
-              </span>
+              From scan to report in <span className={styles.highlight}>three steps</span>
             </h2>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', position: 'relative' }}>
+          <div className={styles.stepsGrid}>
             {STEPS.map((step, i) => {
               const Icon = step.icon;
               return (
@@ -455,7 +319,7 @@ export default function Hero({ user }: { user: User | null }) {
       </section>
 
       {/* ── FEATURES ──────────────────────────────────────────────────── */}
-      <section id="features" style={{ padding: '7rem 2rem', background: 'var(--background)' }}>
+      <section id="features" style={{ padding: '7rem 2rem', background: 'transparent' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <p
@@ -495,9 +359,7 @@ export default function Hero({ user }: { user: User | null }) {
             </p>
           </div>
 
-          <div
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}
-          >
+          <div className={styles.featuresGrid}>
             {FEATURES.map(f => {
               const Icon = f.icon;
               return (
@@ -560,7 +422,7 @@ export default function Hero({ user }: { user: User | null }) {
       </section>
 
       {/* ── ROLE BREAKDOWN ────────────────────────────────────────────── */}
-      <section style={{ padding: '7rem 2rem', background: 'var(--muted)' }}>
+      <section className={styles.midnightBg} style={{ padding: '7rem 2rem' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <p
@@ -573,18 +435,32 @@ export default function Hero({ user }: { user: User | null }) {
                 marginBottom: '0.75rem',
               }}
             >
-              Two Interfaces, One System
+              Engineered for Efficiency
             </p>
             <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 900, letterSpacing: '-0.03em' }}>
-              Built for every role
+              Built to <span style={{ color: 'var(--primary)' }}>Reduce Burnout</span>
             </h2>
+            <p
+              style={{
+                color: 'var(--secondary-foreground)',
+                fontSize: '1.1rem',
+                maxWidth: '700px',
+                margin: '1rem auto 0',
+                lineHeight: 1.6,
+                fontWeight: 500,
+              }}
+            >
+              Radiora automates the manual friction of medical imaging, allowing interpreting physicians to reclaim
+              their clinical focus.
+            </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div className={styles.roleGrid}>
             {/* Admin */}
             <div
               style={{
-                background: 'var(--background)',
+                background: 'rgba(15, 23, 42, 0.4)',
+                backdropFilter: 'blur(8px)',
                 border: '1px solid var(--border)',
                 borderRadius: '24px',
                 padding: '2.5rem',
@@ -618,7 +494,7 @@ export default function Hero({ user }: { user: User | null }) {
                 <ShieldCheck size={22} />
               </div>
               <h3 style={{ fontSize: '1.35rem', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-                System Admin
+                System Orchestrator
               </h3>
               <p
                 style={{
@@ -628,15 +504,15 @@ export default function Hero({ user }: { user: User | null }) {
                   marginBottom: '1.5rem',
                 }}
               >
-                Full orchestration control. Configure PACS and HIS connections, manage doctors, monitor all cases, and
-                configure poll intervals.
+                Bridge the gap between imaging hardware and interpreted physicians. Automate PACS polling, HIS
+                reconciliation, and AI triggering from a single panel.
               </p>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0 }}>
                 {[
-                  'Register & manage doctors',
-                  'PACS / HIS configuration',
-                  'Real-time case monitor',
-                  'DICOM study oversight',
+                  'Register & manage pools',
+                  'PACS / HIS orchestration',
+                  'AI inference monitoring',
+                  'Zero-friction case creation',
                 ].map(item => (
                   <li
                     key={item}
@@ -659,7 +535,8 @@ export default function Hero({ user }: { user: User | null }) {
             {/* Doctor */}
             <div
               style={{
-                background: 'var(--background)',
+                background: 'rgba(15, 23, 42, 0.4)',
+                backdropFilter: 'blur(8px)',
                 border: '1px solid var(--border)',
                 borderRadius: '24px',
                 padding: '2.5rem',
@@ -693,7 +570,7 @@ export default function Hero({ user }: { user: User | null }) {
                 <Stethoscope size={22} />
               </div>
               <h3 style={{ fontSize: '1.35rem', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-                Diagnostic Doctor
+                Modern Radiologist
               </h3>
               <p
                 style={{
@@ -703,15 +580,15 @@ export default function Hero({ user }: { user: User | null }) {
                   marginBottom: '1.5rem',
                 }}
               >
-                A focused clinical workstation. View assigned cases, open DICOM images, read AI findings, and submit
-                structured reports — all in one place.
+                Focus on diagnosis, not metadata. Reclaim your bandwidth with an AI-integrated workstation that surface
+                critical findings the moment a scan arrives.
               </p>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0 }}>
                 {[
-                  'Auto-assigned case queue',
-                  'In-browser DICOM viewer',
-                  'AI analysis results',
-                  'Structured report submission',
+                  'Auto-assigned clinical queue',
+                  'In-browser high-perf viewer',
+                  'AI-first diagnostic insights',
+                  'Seamless report submission',
                 ].map(item => (
                   <li
                     key={item}
@@ -735,96 +612,30 @@ export default function Hero({ user }: { user: User | null }) {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────────────────── */}
-      <section
-        style={{
-          padding: '7rem 2rem',
-          background: 'var(--background)',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ maxWidth: '650px', margin: '0 auto' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'rgba(37,99,235,0.08)',
-              border: '1px solid rgba(37,99,235,0.2)',
-              borderRadius: '50px',
-              padding: '0.4rem 1rem',
-              marginBottom: '2rem',
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              color: 'var(--primary)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}
-          >
+      <section className={styles.ctaSection}>
+        <div style={{ maxWidth: '750px', margin: '0 auto' }}>
+          <div className={styles.ctaBadge}>
             <Zap size={13} />
-            Ready to go
+            The Platform that Powers Radiology
           </div>
 
-          <h2
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.04em',
-              lineHeight: 1.1,
-              marginBottom: '1.25rem',
-            }}
-          >
-            Start your clinical workspace today
+          <h2 className={styles.ctaTitle}>
+            Radiora Power. <span style={{ color: 'var(--primary)' }}>Doctor Focused.</span>
           </h2>
 
-          <p
-            style={{
-              color: 'var(--secondary-foreground)',
-              fontSize: '1.05rem',
-              lineHeight: 1.65,
-              marginBottom: '3rem',
-            }}
-          >
-            Create an admin account, connect your PACS and HIS, and your first case will be auto-created the moment a
-            scan arrives.
+          <p className={styles.ctaSubtitle}>
+            Eliminate diagnostic burnout with automated orchestration. Connect your site sites, integrate your AI, and
+            reclaim your clinical focus.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
               href={isAuthenticated ? dashboardHref : '/auth/register'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                background: 'var(--primary)',
-                color: '#fff',
-                padding: '1.1rem 2.25rem',
-                borderRadius: '14px',
-                fontWeight: 800,
-                fontSize: '1rem',
-                textDecoration: 'none',
-                boxShadow: '0 10px 30px -8px rgba(37,99,235,0.4)',
-              }}
+              className="btn-primary"
+              style={{ padding: '1rem 2.5rem', fontSize: '1.05rem', gap: '0.75rem' }}
             >
-              {isAuthenticated ? 'Open Workstation' : 'Create Admin Account'}
+              {isAuthenticated ? 'Open Workstation' : 'Register Organization'}
               <ArrowRight size={18} />
-            </Link>
-            <Link
-              href="/auth/login"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                background: 'var(--muted)',
-                color: 'var(--foreground)',
-                padding: '1.1rem 2.25rem',
-                borderRadius: '14px',
-                fontWeight: 700,
-                fontSize: '1rem',
-                textDecoration: 'none',
-                border: '1px solid var(--border)',
-              }}
-            >
-              Sign In
             </Link>
           </div>
         </div>

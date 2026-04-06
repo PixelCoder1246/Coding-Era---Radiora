@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { UserPlus, ArrowRight } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import AuthModal from '@/components/AuthModal';
 
 export default function RegisterPage() {

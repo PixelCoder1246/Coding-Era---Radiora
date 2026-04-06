@@ -3,7 +3,6 @@ import { redirect, notFound } from 'next/navigation';
 import { getAuthStatusAction } from '@/lib/actions/auth';
 import { getCaseDetailsAction } from '@/lib/actions/cases';
 import CaseDetailClient from './CaseDetailClient';
-import Navbar from '@/components/Navbar';
 
 export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

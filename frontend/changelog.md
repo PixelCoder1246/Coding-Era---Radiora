@@ -4,6 +4,35 @@ All notable changes to the Radiora-frontend will be documented here.
 
 ---
 
+## [0.4.1] - 2026-04-07
+
+### Added
+
+- **Platform Vision — "The Platform that Powers Radiology"**: Complete rebranding from a generic "imaging platform" to a high-performance **Radiology Orchestration Platform**.
+- **Mission-Driven Content Overhaul**: Re-aligned all marketing and product copy (Homepage, Features, About) to focus on **Reducing Physician Burnout** and providing **AI-First Orchestration**.
+- **Admin Dashboard — HUD Precision Overhaul**:
+  - Implemented 50/50 structural balancing for the critical header section.
+  - Refined HUD corner accents to 2px high-precision optical markers.
+  - Bulletproof vertical icon-title alignment platform-wide.
+  - New "Clinical Table" layout for the Admin Profile dashboard for denser, medical-grade data display.
+- **Global Branding — Browser Tab Update**: Refreshed metadata titles to reflect the new "Powering Radiology" mission.
+- **Typography Scale**: Increased font sizes and weight across all clinical data points for better readability in high-pressure environments.
+
+
+## [0.4.0] - 2026-04-07
+
+### Added
+
+- **Doctor Workstation — Clinical Dashboard**: New `/doctor` portal with a real-time study worklist, status tracking (Pending Review, In Review, Completed), and assigned patient details.
+- **Doctor Workstation — Diagnostic Viewer**: Advanced `/doctor/cases/[id]` interface featuring:
+  - **DICOM iFrame Integration**: Native embedding of Orthanc Stone Web Viewer for high-fidelity medical imaging.
+  - **AI Intelligence Layer**: Dynamic SVG/CSS overlays for AI findings (bounding boxes, labels) with confidence scoring.
+  - **Smart Findings Panel**: Automatically parsed list of clinical insights with multi-observation support.
+  - **Real-time AI Sync**: Immediate polling and manual "refresh" capability to fetch latest AI inference results.
+  - **Clinical Reporting**: Integrated impression input and "Complete Review & Sign" workflow that updates case status across the platform.
+- **Platform — Role-Based Routing**: Centralized middleware enhancements to strictly separate Clinical (Doctor) and Administrative workflows, ensuring secure workspace isolation.
+
+
 ## [0.3.1] - 2026-04-05
 
 ### Changed

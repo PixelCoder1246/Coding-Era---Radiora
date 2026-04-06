@@ -4,9 +4,9 @@ import { Metadata } from 'next';
 import { getAuthStatusAction } from '@/lib/actions/auth';
 
 export const metadata: Metadata = {
-  title: 'Radiora — Clinical Imaging Workstation',
+  title: 'Radiora | The Platform that Powers Radiology',
   description:
-    'Radiora connects your Orthanc PACS, Hospital Information System, and AI inference layer into a unified clinical workstation. Automate case routing, surface AI insights, and streamline radiology workflows.',
+    'Radiora is the orchestration engine that empowers radiologists by eliminating diagnostic friction and reducing clinical burnout through AI-first workflows.',
 };
 
 export default async function Home() {

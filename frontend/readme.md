@@ -70,10 +70,14 @@ npm run frontend
 
 ## Doctor Workstation Features
 
-- Case list with status badges and AI indicators
-- DICOM image viewer (Orthanc Stone Web Viewer)
-- AI analysis results panel
-- Report submission form
+- **Clinical Worklist** — Real-time dashboard with study status badges, modality filtering, and assignment tracking.
+- **Diagnostic Viewer** — High-performance medical imaging via embedded **Orthanc Stone Web Viewer** iFrames.
+- **AI-Augmented Diagnostics**:
+  - **Dynamic Overlays**: SVG/CSS bounding box overlays for detected findings.
+  - **Confidence Metrics**: Probabilistic scores displayed per-finding to support clinical decision-making.
+  - **Insight Refresh**: Live-sync behavior to fetch updated AI results from the `ai_service` pipeline.
+- **Clinical Sign-off** — Standardized reporting workflow for final impressions and case completion.
+
 
 ---
 
