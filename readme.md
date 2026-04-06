@@ -20,10 +20,10 @@ In the modern radiology department, interpreting physicians are overwhelmed by a
 ## 3. Technology Stack
 The Radiora platform is built on a modern, high-concurrency stack designed for the data-intensive requirements of medical imaging:
 
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript.
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript.
 - **Backend API**: Node.js, Express, Prisma ORM.
 - **Database**: PostgreSQL (Relational study-patient-user mapping).
-- **Orchestration Layer**: Custom Node.js Polling Service (C-FIND/C-MOVE orchestration).
+- **Orchestration Layer**: Custom Node.js Polling Service (Orthanc REST API-based study polling & ingestion).
 - **PACS Infrastructure**: Orthanc (DICOM Server) + Stone Web Viewer integration.
 - **AI Inference**: Python/FastAPI (PyTorch & pydicom for DICOM analysis).
 - **Security**: JWT-based Auth with Role-Based Access Control (RBAC).
@@ -43,7 +43,8 @@ The Radiora platform is built on a modern, high-concurrency stack designed for t
 ---
 
 ## 5. Data Flow Diagram (DFD Level 1)
-This diagram details the flow of clinical data through the orchestration engine, including protocol-level interactions and background processing.
+This diagram details the flow of clinical data through the orchestration engine.
+> **Note**: Process labels are numbered (e.g., 1.0, 2.0) according to standard Gane-Sarson notation to indicate the sequence and hierarchy of operations.
 
 ```mermaid
 graph TD
@@ -95,21 +96,22 @@ A production-grade E-R diagram representing the logical schema of the Radiora sy
 
 ```mermaid
 erDiagram
-    USER ||--o{ CASE : assigned_to
+    USER ||--o{ INTEGRATION : manages
+    USER ||--o{ CASE : assigned_as_doctor
     USER ||--o{ REPORT : signs
-    CASE ||--|| AI_RESULT : contains
-    CASE ||--|| REPORT : generates
-    ADMIN ||--o{ INTEGRATION : manages
-    ADMIN ||--o{ PROCESSED_STUDY : tracks
+    USER ||--o{ PROCESSED_STUDY : tracks
+    CASE ||--o| AI_RESULT : contains
+    CASE ||--o| REPORT : generates
     
     USER {
         string id PK
         string name
         string email
         string passwordHash
-        Role role
+        Role role "ADMIN | DOCTOR"
         datetime createdAt
         int maxConcurrentCases
+        string createdByAdminId FK
     }
     
     CASE {
@@ -121,7 +123,9 @@ erDiagram
         string modality
         string bodyPart
         CaseStatus status
+        AiStatus aiStatus
         string assignedDoctorId FK
+        string adminId FK
         datetime createdAt
     }
     
@@ -146,12 +150,20 @@ erDiagram
     
     INTEGRATION {
         string id PK
-        IntegrationType type
+        IntegrationType type "PACS | HIS"
         string url
         string username
         string password
         int pollIntervalSeconds
         boolean active
+        string adminId FK
+    }
+
+    PROCESSED_STUDY {
+        string id PK
+        string studyInstanceUID
+        datetime processedAt
+        string adminId FK
     }
 ```
 
@@ -161,43 +173,55 @@ erDiagram
 High-depth use-case mapping defining the interaction between primary actors and background clinical services.
 
 ```mermaid
-graph TD
-    subgraph Radiora_Ecosystem
-        subgraph Admin_HUD
-            UC1[Configure Integration Nodes]
-            UC2[Register Doctor Specializations]
-            UC3[Monitor System Throughput]
+graph LR
+    %% Actors
+    Admin((System Admin))
+    Doctor((Radiologist))
+    PACS[PACS/Orthanc]
+    HIS[HIS Service]
+    AI[AI Engine]
+
+    subgraph Radiora_Platform [Radiora Clinical Orchestration Platform]
+        direction TB
+        subgraph Admin_Use_Cases [Administrative Controls]
+            UC1(Configure Nodes)
+            UC2(Manage Doctors)
+            UC3(System Monitoring)
         end
         
-        subgraph Doctor_Workstation
-            UC4[Manage Personal Worklist]
-            UC5[Interpret DICOM Studies]
-            UC6[Review AI-First Findings]
-            UC7[Sign and Submit Reports]
+        subgraph Doctor_Use_Cases [Clinical Workstation]
+            UC4(Manage Worklist)
+            UC5(Interpret Studies)
+            UC6(Review AI Result)
+            UC7(Sign Reports)
         end
         
-        subgraph Background_Orchestrator
-            UC8[Autonomous Study Polling]
-            UC9[HIS Data Reconciliation]
-            UC10[Trigger AI Inference]
+        subgraph System_Processes [Background Orchestration]
+            UC8(Study Polling)
+            UC9(Data Matching)
+            UC10(AI Inference)
         end
     end
 
-    Admin((System Admin)) --> UC1
+    %% Admin Interactions
+    Admin --> UC1
     Admin --> UC2
     Admin --> UC3
     
-    Doctor((Radiologist)) --> UC4
+    %% Doctor Interactions
+    Doctor --> UC4
     Doctor --> UC5
     Doctor --> UC6
     Doctor --> UC7
     
-    Orthanc((PACS Server)) -.-> UC8
-    HIS((HIS Service)) -.-> UC9
-    AI_Service((AI Engine)) -.-> UC10
+    %% External System Interactions
+    PACS -.-> UC8
+    HIS -.-> UC9
+    AI -.-> UC10
     
-    UC8 -.-> UC9
-    UC9 -.-> UC10
+    %% Internal Dependency Flows
+    UC8 ==> UC9
+    UC9 ==> UC10
 ```
 
 ---
