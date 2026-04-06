@@ -16,8 +16,8 @@ const DEMO_CREDS = {
     color: 'var(--primary)',
   },
   doctor: {
-    email: 'cs2022299@global.org.in',
-    password: 'cb5b35adf59f',
+    email: 'cs200dad@gmail.com',
+    password: '2048cf4d17dc',
     label: 'Doctor Access',
     desc: 'Diagnostic workstation',
     icon: Stethoscope,

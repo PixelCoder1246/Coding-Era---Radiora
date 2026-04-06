@@ -247,25 +247,38 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
           </div>
         )}
 
-        {/* AI bounding box overlay — togglable */}
         {aiResult && annotations.length > 0 && !iframeLoading && showAnnotations && (
-          <div className={styles.aiOverlay}>
-            {annotations.map((ann, i) => (
-              <div
-                key={i}
-                className={styles.boundingBox}
-                style={{
-                  left: `${ann.x}%`,
-                  top: `${ann.y}%`,
-                  width: `${ann.width}px`,
-                  height: `${ann.height}px`,
-                }}
-              >
-                <div className={styles.aiLabel}>
-                  {ann.label.toUpperCase()} {Math.round(ann.confidence * 100)}%
+          <div
+            className={styles.aiOverlay}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* 
+              Since the DICOM viewer (iFrame) dynamically scales and centers the image, 
+              we wrap the bounding boxes in an absolute-centered container. 
+              The scale is set to a standard 512x512 coordinate map.
+            */}
+            <div style={{ position: 'relative', width: '512px', height: '512px', backgroundColor: 'transparent' }}>
+              {annotations.map((ann, i) => (
+                <div
+                  key={i}
+                  className={styles.boundingBox}
+                  style={{
+                    left: `${ann.x}px`,
+                    top: `${ann.y}px`,
+                    width: `${ann.width}px`,
+                    height: `${ann.height}px`,
+                  }}
+                >
+                  <div className={styles.aiLabel}>
+                    {ann.label.toUpperCase()} {Math.round(ann.confidence * 100)}%
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -274,7 +287,7 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
       <aside
         className={styles.sidePanel}
         style={{
-          width: sidePanelOpen ? '320px' : '0',
+          width: sidePanelOpen ? '380px' : '0',
           borderLeft: sidePanelOpen ? undefined : 'none',
         }}
       >
@@ -379,11 +392,32 @@ export default function CaseDetailClient({ caseData: initialData }: { caseData: 
 
           {aiResult ? (
             <>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Findings</span>
-                <span style={{ fontSize: '0.9rem', color: 'var(--foreground)', lineHeight: 1.5, fontWeight: 500 }}>
-                  {aiResult.findings}
+              <div className={styles.detailItem} style={{ alignItems: 'flex-start' }}>
+                <span className={styles.detailLabel} style={{ marginTop: '0.2rem' }}>
+                  Findings
                 </span>
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    color: 'var(--foreground)',
+                    lineHeight: 1.6,
+                    fontWeight: 500,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    paddingRight: '0.5rem',
+                  }}
+                >
+                  {aiResult.findings
+                    .split('; ')
+                    .filter(Boolean)
+                    .map((finding, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '0.5rem', wordBreak: 'break-word' }}>
+                        <span style={{ color: '#a78bfa' }}>•</span>
+                        <span>{finding.trim()}</span>
+                      </div>
+                    ))}
+                </div>
               </div>
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Confidence</span>

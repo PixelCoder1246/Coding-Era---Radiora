@@ -64,8 +64,9 @@ docker compose up -d
 ```
 
 This starts:
-- **Orthanc** PACS at `http://localhost:8042` (login: `demo` / `demo`)
-- **HIS** mock service at `http://localhost:3010`
+
+- **Orthanc** PACS at `https://orthanc-13-204-42-87.nip.io` (login: `blank` / `blank`)
+- **HIS** mock service at `https://his-13-204-42-87.nip.io`
 
 ### Step 3 — Set up and start the Backend
 
@@ -141,9 +142,9 @@ Set `AI_BASE_URL=http://localhost:8000` in `backend/.env` to enable AI analysis.
 
 These accounts are pre-registered in the hosted environment. Use them to log in and explore the full workflow:
 
-| Role | Email | Password |
-|------|-------|----------|
-| **Admin** | `70001933arin@gmail.com` | `123456` |
+| Role       | Email                     | Password       |
+| ---------- | ------------------------- | -------------- |
+| **Admin**  | `70001933arin@gmail.com`  | `123456`       |
 | **Doctor** | `cs2022299@global.org.in` | `cb5b35adf59f` |
 
 > You can also use the one-click credential presets on the Login page — click either card and the form auto-fills.
@@ -152,14 +153,14 @@ These accounts are pre-registered in the hosted environment. Use them to log in 
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 15, React 19, TypeScript |
-| Backend | Node.js, Express, Prisma 5, PostgreSQL |
-| PACS | Orthanc (DICOM server + Stone Web Viewer) |
-| HIS | Mock Node.js HIS service (Dockerised) |
-| AI | Python FastAPI, PyTorch, pydicom |
-| Infra | Docker Compose, Nginx reverse proxy |
+| Layer    | Technology                                |
+| -------- | ----------------------------------------- |
+| Frontend | Next.js 15, React 19, TypeScript          |
+| Backend  | Node.js, Express, Prisma 5, PostgreSQL    |
+| PACS     | Orthanc (DICOM server + Stone Web Viewer) |
+| HIS      | Mock Node.js HIS service (Dockerised)     |
+| AI       | Python FastAPI, PyTorch, pydicom          |
+| Infra    | Docker Compose, Nginx reverse proxy       |
 
 ---
 
